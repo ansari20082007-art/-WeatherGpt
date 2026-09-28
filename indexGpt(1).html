@@ -1,0 +1,6132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>WeatherGPT - AI Weather Assistant</title>
+
+<style>
+.password-input-wrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+}
+
+.password-input-wrap input{
+    width:100%;
+    padding-right:70px;
+}
+
+.password-toggle{
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+    border:0;
+    background:transparent;
+    color:#8ea9c4;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    padding:6px 4px;
+}
+
+.password-toggle:hover{
+    color:#ffffff;
+}
+
+
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    min-height:100vh;
+    color:#ffffff;
+
+    background:
+        radial-gradient(circle at 20% 20%,rgba(0,255,200,.12),transparent 30%),
+        radial-gradient(circle at 80% 30%,rgba(120,80,255,.12),transparent 30%),
+        linear-gradient(135deg,#07111f,#10182b,#07151d);
+
+    overflow-x:hidden;
+
+    transition:
+        background 1.2s ease,
+        filter 1.2s ease;
+}
+
+button,
+input{
+    font-family:inherit;
+}
+
+/* =========================================================
+   ATMOSPHERE
+========================================================= */
+
+#atmosphere{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:0;
+}
+
+.star{
+    position:absolute;
+    width:2px;
+    height:2px;
+    background:white;
+    border-radius:50%;
+    opacity:.5;
+    animation:twinkle 3s infinite ease-in-out;
+}
+
+@keyframes twinkle{
+
+    0%,100%{
+        opacity:.15;
+        transform:scale(.7);
+    }
+
+    50%{
+        opacity:.9;
+        transform:scale(1.4);
+    }
+
+}
+
+#rain{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+}
+
+.raindrop{
+    position:absolute;
+    top:-30px;
+    width:1px;
+    height:45px;
+
+    background:linear-gradient(
+        transparent,
+        rgba(130,220,255,.8)
+    );
+
+    animation:rainFall linear infinite;
+}
+
+@keyframes rainFall{
+
+    from{
+        transform:translateY(-50px) rotate(12deg);
+    }
+
+    to{
+        transform:translateY(110vh) rotate(12deg);
+    }
+
+}
+
+#wind{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+}
+
+.wind-line{
+    position:absolute;
+    right:-250px;
+    height:1px;
+
+    background:linear-gradient(
+        90deg,
+        transparent,
+        rgba(100,240,220,.35),
+        transparent
+    );
+
+    animation:windMove linear infinite;
+}
+
+@keyframes windMove{
+
+    from{
+        transform:translateX(0);
+        opacity:0;
+    }
+
+    20%{
+        opacity:1;
+    }
+
+    80%{
+        opacity:1;
+    }
+
+    to{
+        transform:translateX(-130vw);
+        opacity:0;
+    }
+
+}
+
+/* =========================================================
+   PROFESSIONAL WEATHERGPT LOGO
+========================================================= */
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:13px;
+}
+
+.logo-icon{
+    position:relative;
+
+    width:58px;
+    height:58px;
+
+    border-radius:17px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(18,218,191,.25),
+            rgba(84,105,255,.25)
+        );
+
+    border:1px solid rgba(110,235,220,.35);
+
+    box-shadow:
+        0 0 18px rgba(30,220,190,.18),
+        inset 0 0 20px rgba(80,120,255,.08);
+
+    overflow:hidden;
+
+    transition:
+        transform .4s ease,
+        box-shadow .4s ease;
+}
+
+/* Moving shine across logo */
+
+.logo-icon::before{
+    content:"";
+
+    position:absolute;
+
+    width:90px;
+    height:18px;
+
+    background:linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.18),
+        transparent
+    );
+
+    transform:rotate(-45deg) translateX(-80px);
+
+    animation:logoShine 4s infinite;
+}
+
+@keyframes logoShine{
+
+    0%{
+        transform:rotate(-45deg) translateX(-90px);
+    }
+
+    45%,100%{
+        transform:rotate(-45deg) translateX(100px);
+    }
+
+}
+
+/* Logo hover */
+
+.logo-icon:hover{
+    transform:
+        translateY(-3px)
+        scale(1.06)
+        rotate(-2deg);
+
+    box-shadow:
+        0 0 30px rgba(30,220,190,.32),
+        0 0 55px rgba(80,100,255,.16),
+        inset 0 0 20px rgba(80,120,255,.12);
+}
+
+/* SVG */
+
+.weather-logo-svg{
+    width:44px;
+    height:44px;
+
+    position:relative;
+    z-index:2;
+
+    overflow:visible;
+
+    animation:
+        logoFloat 4s ease-in-out infinite;
+}
+
+@keyframes logoFloat{
+
+    0%,100%{
+        transform:translateY(0);
+    }
+
+    50%{
+        transform:translateY(-2px);
+    }
+
+}
+
+/* Sun animation */
+
+.logo-sun{
+    transform-origin:32px 12px;
+
+    animation:
+        sunRotate 12s linear infinite;
+}
+
+@keyframes sunRotate{
+
+    from{
+        transform:rotate(0deg);
+    }
+
+    to{
+        transform:rotate(360deg);
+    }
+
+}
+
+/* Cloud breathing animation */
+
+.logo-cloud{
+    animation:
+        cloudFloat 3s ease-in-out infinite;
+}
+
+@keyframes cloudFloat{
+
+    0%,100%{
+        transform:translateY(0);
+    }
+
+    50%{
+        transform:translateY(-1.5px);
+    }
+
+}
+
+/* AI nodes */
+
+.ai-node{
+    animation:
+        aiPulse 2s ease-in-out infinite;
+}
+
+.ai-node:nth-of-type(2){
+    animation-delay:.3s;
+}
+
+.ai-node:nth-of-type(3){
+    animation-delay:.6s;
+}
+
+@keyframes aiPulse{
+
+    0%,100%{
+        opacity:.55;
+        transform:scale(.9);
+    }
+
+    50%{
+        opacity:1;
+        transform:scale(1.15);
+    }
+
+}
+
+/* =========================================================
+   LOGO TEXT
+========================================================= */
+
+.logo-text{
+    display:flex;
+    flex-direction:column;
+}
+
+.logo h1{
+    font-size:24px;
+
+    letter-spacing:-.4px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #b8fff2,
+            #aebcff
+        );
+
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+
+    background-size:200% auto;
+
+    animation:
+        logoTextGradient 5s linear infinite;
+}
+
+@keyframes logoTextGradient{
+
+    0%{
+        background-position:0% center;
+    }
+
+    100%{
+        background-position:200% center;
+    }
+
+}
+
+.logo p{
+    color:#91a6b9;
+    font-size:12px;
+    margin-top:3px;
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.app{
+    position:relative;
+    z-index:1;
+
+    width:94%;
+    max-width:1450px;
+
+    margin:auto;
+
+    padding:25px 0 50px;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    gap:20px;
+
+    margin-bottom:25px;
+}
+
+.status{
+    padding:10px 15px;
+
+    border:1px solid rgba(90,255,210,.25);
+
+    border-radius:30px;
+
+    color:#7dffd8;
+
+    font-size:13px;
+
+    background:rgba(0,0,0,.15);
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.search-box{
+    display:flex;
+    gap:10px;
+    margin-bottom:25px;
+}
+
+.search-box input{
+    flex:1;
+
+    padding:17px 20px;
+
+    border-radius:15px;
+
+    border:1px solid rgba(130,180,220,.18);
+
+    outline:none;
+
+    background:rgba(10,22,38,.8);
+
+    color:white;
+
+    font-size:15px;
+}
+
+.search-box input::placeholder{
+    color:#73869a;
+}
+
+.search-box button{
+    padding:0 25px;
+
+    border:0;
+
+    border-radius:15px;
+
+    cursor:pointer;
+
+    color:white;
+
+    font-weight:bold;
+
+    background:
+        linear-gradient(
+            135deg,
+            #14cdb0,
+            #546dff
+        );
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+}
+
+.search-box button:hover{
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 10px 25px rgba(20,205,176,.2);
+}
+
+/* =========================================================
+   DASHBOARD GRID
+========================================================= */
+
+.dashboard{
+    display:grid;
+
+    grid-template-columns:
+        1.4fr 1fr;
+
+    gap:20px;
+}
+
+.card{
+    background:
+        rgba(9,22,37,.78);
+
+    border:
+        1px solid rgba(120,180,220,.13);
+
+    border-radius:22px;
+
+    padding:22px;
+
+    backdrop-filter:blur(15px);
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.25);
+
+    transition:
+        transform .3s ease,
+        border-color .3s ease,
+        box-shadow .3s ease;
+}
+
+.card:hover{
+    border-color:
+        rgba(100,220,210,.2);
+
+    box-shadow:
+        0 25px 70px rgba(0,0,0,.3);
+}
+
+/* =========================================================
+   CURRENT WEATHER
+========================================================= */
+
+.current{
+    min-height:300px;
+
+    position:relative;
+
+    overflow:hidden;
+}
+
+.current-top{
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+}
+
+.location{
+    color:#9fb2c4;
+    font-size:14px;
+}
+
+.location strong{
+    display:block;
+
+    color:white;
+
+    font-size:20px;
+
+    margin-top:5px;
+}
+
+.current-icon{
+    font-size:55px;
+
+    filter:
+        drop-shadow(
+            0 0 20px rgba(100,220,255,.25)
+        );
+
+    animation:
+        weatherIconFloat 4s ease-in-out infinite;
+}
+
+@keyframes weatherIconFloat{
+
+    0%,100%{
+        transform:translateY(0);
+    }
+
+    50%{
+        transform:translateY(-7px);
+    }
+
+}
+
+.temperature{
+    font-size:72px;
+
+    font-weight:700;
+
+    margin-top:25px;
+}
+
+.degree{
+    font-size:30px;
+
+    color:#9db1c4;
+}
+
+.condition{
+    color:#9eb0c1;
+
+    margin-top:5px;
+}
+
+.metrics{
+    display:grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    gap:10px;
+
+    margin-top:25px;
+}
+
+.metric{
+    padding:14px;
+
+    border-radius:14px;
+
+    background:
+        rgba(255,255,255,.035);
+
+    transition:
+        transform .25s ease,
+        background .25s ease;
+}
+
+.metric:hover{
+    transform:translateY(-3px);
+
+    background:
+        rgba(255,255,255,.06);
+}
+
+.metric small{
+    display:block;
+
+    color:#73889a;
+
+    margin-bottom:5px;
+}
+
+.metric strong{
+    font-size:14px;
+}
+
+/* =========================================================
+   ALERT
+========================================================= */
+
+.alert{
+    margin-top:18px;
+
+    padding:16px;
+
+    border-radius:15px;
+
+    background:
+        rgba(255,166,0,.08);
+
+    border:
+        1px solid rgba(255,180,40,.18);
+}
+
+.alert h3{
+    color:#ffc45c;
+
+    font-size:14px;
+
+    margin-bottom:6px;
+}
+
+.alert p{
+    color:#aebdcc;
+
+    font-size:13px;
+
+    line-height:1.5;
+}
+
+/* =========================================================
+   ANALYSIS
+========================================================= */
+
+.analysis h2,
+.forecast h2,
+.chat h2{
+    font-size:18px;
+
+    margin-bottom:18px;
+}
+
+.analysis-item{
+    margin-bottom:20px;
+}
+
+.analysis-head{
+    display:flex;
+
+    justify-content:space-between;
+
+    margin-bottom:8px;
+
+    font-size:13px;
+}
+
+.analysis-head span:first-child{
+    color:#a5b5c5;
+}
+
+.analysis-head span:last-child{
+    color:#75e8d0;
+}
+
+.bar{
+    width:100%;
+
+    height:7px;
+
+    background:#182536;
+
+    border-radius:10px;
+
+    overflow:hidden;
+}
+
+.bar div{
+    height:100%;
+
+    width:0;
+
+    border-radius:10px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #14cdb0,
+            #6076ff
+        );
+
+    transition:
+        width .7s ease;
+}
+
+.analysis-text{
+    color:#74899b;
+
+    font-size:12px;
+
+    line-height:1.5;
+
+    margin-top:7px;
+}
+
+/* =========================================================
+   FORECAST
+========================================================= */
+
+.forecast{
+    margin-top:20px;
+}
+
+.forecast-grid{
+    display:grid;
+
+    grid-template-columns:
+        repeat(7,1fr);
+
+    gap:10px;
+}
+
+.forecast-day{
+    text-align:center;
+
+    padding:15px 8px;
+
+    border-radius:15px;
+
+    background:
+        rgba(255,255,255,.025);
+
+    border:
+        1px solid transparent;
+
+    transition:
+        transform .25s ease,
+        background .25s ease;
+}
+
+.forecast-day:hover{
+    transform:
+        translateY(-5px);
+
+    background:
+        rgba(255,255,255,.05);
+}
+
+.forecast-day.active{
+    border-color:
+        rgba(80,230,200,.3);
+
+    background:
+        rgba(30,190,160,.07);
+}
+
+.day{
+    color:#879aaa;
+
+    font-size:12px;
+}
+
+.forecast-icon{
+    font-size:28px;
+
+    margin:12px 0;
+
+    animation:
+        forecastFloat 3s ease-in-out infinite;
+}
+
+@keyframes forecastFloat{
+
+    0%,100%{
+        transform:translateY(0);
+    }
+
+    50%{
+        transform:translateY(-4px);
+    }
+
+}
+
+.forecast-temp{
+    font-weight:bold;
+}
+
+.forecast-rain{
+    color:#70d9f5;
+
+    font-size:11px;
+
+    margin-top:8px;
+}
+
+/* =========================================================
+   CHATBOT
+========================================================= */
+
+.chat{
+    margin-top:20px;
+}
+
+.messages{
+    height:370px;
+
+    overflow-y:auto;
+
+    padding:5px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+}
+
+.message{
+    max-width:80%;
+
+    padding:13px 16px;
+
+    border-radius:16px;
+
+    font-size:14px;
+
+    line-height:1.55;
+
+    animation:
+        messageAppear .35s ease;
+}
+
+@keyframes messageAppear{
+
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+}
+
+.bot-message{
+    align-self:flex-start;
+
+    background:
+        rgba(255,255,255,.055);
+
+    color:#d8e2eb;
+
+    border:
+        1px solid rgba(255,255,255,.06);
+}
+
+.user-message{
+    align-self:flex-end;
+
+    background:
+        linear-gradient(
+            135deg,
+            #13bda6,
+            #5369e9
+        );
+
+    color:white;
+}
+
+.chat-input{
+    display:flex;
+
+    gap:8px;
+
+    margin-top:15px;
+}
+
+.chat-input input{
+    flex:1;
+
+    padding:15px;
+
+    border-radius:13px;
+
+    border:
+        1px solid rgba(120,180,220,.15);
+
+    background:#0a1726;
+
+    color:white;
+
+    outline:none;
+}
+
+.chat-input button{
+    border:0;
+
+    border-radius:13px;
+
+    padding:0 18px;
+
+    cursor:pointer;
+
+    color:white;
+
+    background:#16bfa8;
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.chat-input button:hover{
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 8px 20px rgba(22,191,168,.2);
+}
+
+.quick{
+    display:flex;
+
+    gap:8px;
+
+    flex-wrap:wrap;
+
+    margin-top:12px;
+}
+
+.quick button{
+    padding:8px 12px;
+
+    border-radius:20px;
+
+    border:
+        1px solid rgba(120,180,220,.14);
+
+    background:
+        rgba(255,255,255,.04);
+
+    color:#9bb0c1;
+
+    cursor:pointer;
+
+    transition:
+        all .25s ease;
+}
+
+.quick button:hover{
+    color:white;
+
+    border-color:#2bd9bc;
+
+    transform:translateY(-2px);
+}
+
+/* =========================================================
+   TYPING
+========================================================= */
+
+.typing{
+    display:flex;
+
+    gap:4px;
+}
+
+.typing i{
+    width:6px;
+
+    height:6px;
+
+    background:#61ddca;
+
+    border-radius:50%;
+
+    animation:
+        bounce 1s infinite;
+}
+
+.typing i:nth-child(2){
+    animation-delay:.15s;
+}
+
+.typing i:nth-child(3){
+    animation-delay:.3s;
+}
+
+@keyframes bounce{
+
+    0%,100%{
+        transform:translateY(0);
+    }
+
+    50%{
+        transform:translateY(-5px);
+    }
+
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:900px){
+
+    .dashboard{
+        grid-template-columns:1fr;
+    }
+
+    .forecast-grid{
+        overflow-x:auto;
+
+        grid-template-columns:
+            repeat(7,120px);
+    }
+
+}
+
+@media(max-width:600px){
+
+    .header{
+        align-items:flex-start;
+
+        flex-direction:column;
+    }
+
+    .logo-icon{
+        width:52px;
+        height:52px;
+    }
+
+    .weather-logo-svg{
+        width:40px;
+        height:40px;
+    }
+
+    .logo h1{
+        font-size:21px;
+    }
+
+    .metrics{
+        grid-template-columns:
+            repeat(2,1fr);
+    }
+
+    .temperature{
+        font-size:55px;
+    }
+
+    .search-box{
+        flex-direction:column;
+    }
+
+    .search-box button{
+        padding:15px;
+    }
+
+}
+
+/* =========================================================
+   WEATHER BACKGROUND STATES
+========================================================= */
+
+/* Sunny */
+
+body.sunny-weather{
+
+    background:
+        radial-gradient(
+            circle at 75% 18%,
+            rgba(255,190,60,.28),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 20% 25%,
+            rgba(255,225,100,.12),
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            #17263c,
+            #263b55,
+            #122c38
+        );
+}
+
+/* Cloudy */
+
+body.cloudy-weather{
+
+    background:
+        radial-gradient(
+            circle at 70% 20%,
+            rgba(160,190,220,.15),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            #0c1725,
+            #253445,
+            #111d29
+        );
+}
+
+/* Rainy */
+
+body.rainy-weather{
+
+    background:
+        radial-gradient(
+            circle at 50% 10%,
+            rgba(60,160,220,.15),
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            #07121e,
+            #0c2434,
+            #07121d
+        );
+}
+
+/* Storm */
+
+body.storm-weather{
+
+    background:
+        radial-gradient(
+            circle at 50% 20%,
+            rgba(130,90,255,.2),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            #090914,
+            #17172b,
+            #080812
+        );
+}
+
+/* Cold */
+
+body.cold-weather{
+
+    background:
+        radial-gradient(
+            circle at 70% 15%,
+            rgba(100,210,255,.25),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 20% 70%,
+            rgba(170,230,255,.12),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            #071723,
+            #102f42,
+            #081925
+        );
+}
+
+
+
+/* =========================================================
+   REALISTIC DYNAMIC WEATHER ANIMATIONS
+   Visual layer only — APIs, logo and dashboard logic remain unchanged.
+========================================================= */
+#atmosphere > div{position:absolute;inset:0;}
+#skyGlow{z-index:0;opacity:0;transition:opacity 1.4s ease,background 1.4s ease;}
+body::before{content:"";position:fixed;inset:-15%;pointer-events:none;z-index:0;opacity:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.08),transparent 38%);animation:atmosphereDrift 14s ease-in-out infinite alternate;transition:opacity 1.4s ease;}
+@keyframes atmosphereDrift{0%{transform:translate3d(-2%,1%,0) scale(1)}100%{transform:translate3d(2%,-2%,0) scale(1.08)}}
+#sunOrb{z-index:1;width:230px!important;height:230px!important;left:auto!important;right:4%;top:7%;inset:auto!important;border-radius:50%;opacity:0;transform:scale(.65);transition:opacity 1.2s ease,transform 1.4s cubic-bezier(.2,.8,.2,1);background:radial-gradient(circle,rgba(255,247,190,1) 0 9%,rgba(255,214,82,.92) 12%,rgba(255,176,38,.28) 30%,transparent 67%);filter:blur(.2px) drop-shadow(0 0 35px rgba(255,191,45,.6));animation:sunPulse 5s ease-in-out infinite;}
+#sunOrb::before,#sunOrb::after{content:"";position:absolute;inset:-55px;border-radius:50%;border:1px solid rgba(255,216,92,.18);animation:sunRings 8s linear infinite;}
+#sunOrb::after{inset:-95px;border-color:rgba(255,195,55,.10);animation-duration:12s;}
+#sunOrb span{position:absolute;inset:-120px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,220,90,.10) 0deg 2deg,transparent 2deg 12deg);animation:sunSpin 28s linear infinite;mask-image:radial-gradient(circle,transparent 0 32%,#000 42% 60%,transparent 72%);}
+@keyframes sunPulse{0%,100%{filter:blur(.2px) drop-shadow(0 0 28px rgba(255,191,45,.48))}50%{filter:blur(.2px) drop-shadow(0 0 55px rgba(255,205,70,.75))}}
+@keyframes sunRings{from{transform:scale(.92);opacity:.7}to{transform:scale(1.12);opacity:0}}
+@keyframes sunSpin{to{transform:rotate(360deg)}}
+#clouds{z-index:2;opacity:0;transition:opacity 1s ease;overflow:hidden;}
+.cloud-layer{position:absolute;width:420px;height:120px;border-radius:100px;background:linear-gradient(180deg,rgba(235,246,255,.24),rgba(120,145,165,.08));filter:blur(1px);box-shadow:0 30px 50px rgba(0,0,0,.12);animation:cloudCruise linear infinite;}
+.cloud-layer::before,.cloud-layer::after{content:"";position:absolute;border-radius:50%;background:inherit;}
+.cloud-layer::before{width:180px;height:180px;left:70px;bottom:15px}.cloud-layer::after{width:230px;height:230px;right:45px;bottom:5px}
+.cloud-layer.c1{top:12%;left:-500px;animation-duration:55s}.cloud-layer.c2{top:30%;left:-600px;transform:scale(.72);animation-duration:72s;animation-delay:-25s;opacity:.65}.cloud-layer.c3{top:50%;left:-700px;transform:scale(.5);animation-duration:88s;animation-delay:-45s;opacity:.4}
+@keyframes cloudCruise{from{transform:translateX(0) scale(1)}to{transform:translateX(calc(100vw + 900px)) scale(1)}}
+#rain{z-index:4;opacity:0;transition:opacity .8s ease}.raindrop{width:2px!important;height:65px!important;border-radius:100%;box-shadow:0 0 5px rgba(115,210,255,.25)}
+.rain-splash{position:absolute;width:22px;height:7px;border-bottom:2px solid rgba(150,225,255,.38);border-radius:50%;animation:splash .55s ease-out infinite}
+@keyframes splash{0%{transform:scale(.2);opacity:0}40%{opacity:.7}100%{transform:scale(1.5);opacity:0}}
+#snow,#ice{z-index:5;opacity:0;transition:opacity 1s ease}.snowflake{position:absolute;top:-30px;color:rgba(235,250,255,.88);text-shadow:0 0 10px rgba(170,230,255,.6);animation:snowFall linear infinite}
+@keyframes snowFall{0%{transform:translate3d(0,-40px,0) rotate(0deg);opacity:0}10%{opacity:.9}50%{transform:translate3d(45px,50vh,0) rotate(180deg)}100%{transform:translate3d(-35px,115vh,0) rotate(360deg);opacity:.15}}
+.ice-crystal{position:absolute;width:18px;height:18px;opacity:.7;filter:drop-shadow(0 0 7px rgba(150,235,255,.65));animation:iceDrift ease-in-out infinite}.ice-crystal::before,.ice-crystal::after{content:"";position:absolute;left:50%;top:0;width:2px;height:100%;background:linear-gradient(transparent,#b9f2ff,transparent);border-radius:100%}.ice-crystal::after{transform:rotate(60deg)}
+@keyframes iceDrift{0%,100%{transform:translate3d(0,0,0) rotate(0deg) scale(.7);opacity:.15}50%{transform:translate3d(20px,-18px,0) rotate(120deg) scale(1.15);opacity:.9}}
+#fog{z-index:3;opacity:0;transition:opacity 1.2s ease;background:linear-gradient(90deg,transparent,rgba(215,230,238,.13),transparent);filter:blur(18px);animation:fogMove 16s ease-in-out infinite alternate}
+@keyframes fogMove{from{transform:translateX(-12%) scale(1.05)}to{transform:translateX(12%) scale(1.12)}}
+#wind{z-index:6;opacity:0;transition:opacity .8s ease}.wind-line{height:2px!important;border-radius:100%;filter:blur(.3px);box-shadow:0 0 8px rgba(115,230,220,.25)}.wind-ribbon{position:absolute;height:2px;border-radius:50%;background:linear-gradient(90deg,transparent,rgba(210,255,250,.5),transparent);filter:blur(.4px);animation:windRibbon linear infinite}
+@keyframes windRibbon{from{transform:translateX(120vw) skewX(-18deg);opacity:0}15%{opacity:.8}85%{opacity:.8}to{transform:translateX(-120vw) skewX(-18deg);opacity:0}}
+#lightning{z-index:7;opacity:0;background:rgba(220,235,255,0);transition:background .05s}#lightning.flash{animation:lightningFlash .55s ease-out}
+@keyframes lightningFlash{0%{background:rgba(235,245,255,0)}8%{background:rgba(235,245,255,.30)}13%{background:rgba(235,245,255,.04)}20%{background:rgba(235,245,255,.20)}30%{background:rgba(235,245,255,0)}100%{background:transparent}}
+#heatHaze{z-index:8;opacity:0;pointer-events:none;background:linear-gradient(180deg,transparent 30%,rgba(255,180,80,.05),transparent);filter:blur(2px);animation:heatWave 3.2s ease-in-out infinite;transition:opacity 1s ease}
+@keyframes heatWave{0%,100%{transform:translateY(0) scaleX(1)}50%{transform:translateY(-8px) scaleX(1.015)}}
+body.sunny-weather::before{opacity:1}body.sunny-weather #sunOrb{opacity:1;transform:scale(1)}body.sunny-weather #skyGlow{opacity:1;background:radial-gradient(circle at 80% 12%,rgba(255,196,67,.22),transparent 32%),linear-gradient(180deg,rgba(255,210,90,.04),transparent 45%)}body.sunny-weather #clouds{opacity:.18}
+body.cloudy-weather::before{opacity:.7}body.cloudy-weather #clouds{opacity:.92}body.cloudy-weather #skyGlow{opacity:1;background:linear-gradient(180deg,rgba(150,190,215,.10),transparent 60%)}
+body.rainy-weather::before{opacity:.45}body.rainy-weather #rain{opacity:1}body.rainy-weather #clouds{opacity:.88}body.rainy-weather #skyGlow{opacity:1;background:radial-gradient(circle at 50% 5%,rgba(90,175,225,.16),transparent 38%)}
+body.storm-weather::before{opacity:.9;background:radial-gradient(circle at 50% 18%,rgba(115,100,220,.18),transparent 35%)}body.storm-weather #rain{opacity:1}body.storm-weather #clouds{opacity:1;filter:brightness(.65)}body.storm-weather #lightning{opacity:1}
+body.cold-weather::before{opacity:.8;background:radial-gradient(circle at 50% 25%,rgba(155,235,255,.12),transparent 38%)}body.cold-weather #snow{opacity:1}body.cold-weather #ice{opacity:.9}body.cold-weather #fog{opacity:.25}
+body.fog-weather::before{opacity:.55}body.fog-weather #fog{opacity:1}body.fog-weather #clouds{opacity:.4}
+body.windy-weather #wind{opacity:1}body.hot-weather #heatHaze{opacity:1}body.night-weather #sunOrb{opacity:0!important;transform:scale(.5)!important}body.night-weather #skyGlow{opacity:.45;background:radial-gradient(circle at 75% 18%,rgba(100,130,255,.10),transparent 35%)}body.night-weather #clouds{filter:brightness(.65)}
+@media(max-width:600px){#sunOrb{width:170px!important;height:170px!important;right:-35px;top:6%}.cloud-layer{width:300px;height:90px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+
+
+/* =========================================================
+   ENHANCED WEATHER BACKGROUND — VISUAL ONLY
+   Existing weather API / Gemini API / logo / UI unchanged.
+========================================================= */
+
+body{
+    transition:
+        background 1.4s ease,
+        color 1s ease;
+}
+
+#weatherScene{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    overflow:hidden;
+    pointer-events:none;
+    opacity:1;
+    transition:opacity 1s ease, background 1.4s ease;
+}
+
+/* SUNNY — bright yellow/orange full-screen atmosphere */
+body.weather-sunny #weatherScene{
+    background:
+        radial-gradient(circle at 72% 24%,
+            rgba(255,255,255,.28) 0%,
+            rgba(255,255,255,.08) 20%,
+            transparent 42%),
+        linear-gradient(180deg,
+            #2499e8 0%,
+            #4db6f2 38%,
+            #8bd3f2 70%,
+            #c6e9ef 100%);
+}
+
+body.weather-sunny{
+    background:
+        linear-gradient(180deg,
+            #208fdc 0%,
+            #4eb8ef 42%,
+            #8bd5f2 72%,
+            #c9e9e9 100%);
+}
+
+.sun-core{
+    position:absolute;
+    width:92px;
+    height:92px;
+    min-width:92px;
+    min-height:92px;
+    left:auto;
+    top:42px;
+    right:48px;
+    transform:translate(0,0);
+    border-radius:50%;
+    background:
+        radial-gradient(circle at 38% 34%,
+            #fffef1 0%,
+            #fff6bf 18%,
+            #ffd84f 46%,
+            #ffb52b 72%,
+            rgba(255,166,28,.72) 86%,
+            rgba(255,166,28,0) 100%);
+    box-shadow:
+        0 0 18px rgba(255,238,156,.72),
+        0 0 42px rgba(255,205,78,.42),
+        0 0 90px rgba(255,177,45,.22);
+    animation:realisticSunPulse 6s ease-in-out infinite;
+}
+
+.sun-rays{
+    position:absolute;
+    width:180px;
+    height:180px;
+    left:auto;
+    top:-2px;
+    right:4px;
+    transform:translate(0,0);
+    border-radius:50%;
+    background:
+        repeating-conic-gradient(
+            from 0deg,
+            rgba(255,249,176,.48) 0deg 2deg,
+            transparent 2deg 16deg
+        );
+    -webkit-mask:radial-gradient(circle,transparent 0 42%,#000 43% 55%,transparent 56%);
+    mask:radial-gradient(circle,transparent 0 42%,#000 43% 55%,transparent 56%);
+    animation:rotateSun 38s linear infinite;
+}
+
+.sun-glow{
+    position:absolute;
+    inset:-20%;
+    background:
+        radial-gradient(circle at 50% 32%,
+        rgba(255,245,160,.28),
+        transparent 38%);
+    animation:sunGlow 5s ease-in-out infinite;
+}
+
+/* Warm atmospheric floating particles */
+.sun-particle{
+    position:absolute;
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:rgba(255,250,195,.7);
+    box-shadow:0 0 12px rgba(255,238,128,.8);
+    animation:floatSunParticle linear infinite;
+}
+
+/* WINTER — keep existing snow/ice behavior, add richer winter atmosphere */
+body.weather-winter #weatherScene{
+    background:
+        radial-gradient(circle at 50% 20%,
+            rgba(236,250,255,.72),
+            transparent 34%),
+        linear-gradient(180deg,
+            #dcefff 0%,
+            #a9d2e9 42%,
+            #789db5 100%);
+}
+
+body.weather-winter{
+    background:
+        linear-gradient(180deg,#dff3ff 0%,#afd8ec 48%,#7698ae 100%);
+}
+
+.winter-mist{
+    position:absolute;
+    inset:-20%;
+    background:
+        radial-gradient(ellipse at 15% 65%,rgba(255,255,255,.45),transparent 27%),
+        radial-gradient(ellipse at 75% 45%,rgba(255,255,255,.32),transparent 30%),
+        radial-gradient(ellipse at 45% 80%,rgba(255,255,255,.38),transparent 28%);
+    filter:blur(22px);
+    animation:winterMist 13s ease-in-out infinite alternate;
+}
+
+.winter-mountain{
+    position:absolute;
+    left:-5%;
+    right:-5%;
+    bottom:-2%;
+    height:35%;
+    opacity:.45;
+    background:
+        linear-gradient(135deg,transparent 48%,rgba(255,255,255,.8) 49% 51%,transparent 52%),
+        linear-gradient(45deg,transparent 48%,rgba(255,255,255,.75) 49% 51%,transparent 52%);
+    background-size:42% 100%,48% 100%;
+    transform:skewX(-8deg);
+    filter:blur(1px);
+}
+
+/* Existing rain / snow / ice elements stay functional; these only enhance the scene. */
+.weather-overlay{
+    position:absolute;
+    inset:0;
+    transition:opacity 1s ease;
+}
+
+/* High-quality frost edge for cold winter conditions */
+.frost-edge{
+    position:absolute;
+    inset:0;
+    border:24px solid rgba(220,247,255,.14);
+    box-shadow:
+        inset 0 0 80px rgba(188,231,255,.35),
+        inset 0 0 180px rgba(235,250,255,.18);
+    opacity:.9;
+}
+
+/* Snow crystals drifting at different depths */
+.snow-crystal{
+    position:absolute;
+    top:-40px;
+    color:rgba(255,255,255,.92);
+    text-shadow:0 0 12px rgba(220,247,255,.95);
+    animation:snowDrift linear infinite;
+    user-select:none;
+}
+
+@keyframes sunPulse{
+    0%,100%{transform:translate(-50%,-50%) scale(1)}
+    50%{transform:translate(-50%,-50%) scale(1.055)}
+}
+
+@keyframes realisticSunPulse{
+    0%,100%{
+        transform:translate(0,0) scale(1);
+        filter:brightness(1);
+    }
+    50%{
+        transform:translate(0,0) scale(1.025);
+        filter:brightness(1.06);
+    }
+}
+@keyframes rotateSun{
+    to{transform:translate(-50%,-50%) rotate(360deg)}
+}
+@keyframes sunGlow{
+    0%,100%{opacity:.65;transform:scale(.96)}
+    50%{opacity:1;transform:scale(1.04)}
+}
+@keyframes floatSunParticle{
+    from{transform:translate3d(0,110vh,0);opacity:0}
+    12%{opacity:.8}
+    88%{opacity:.8}
+    to{transform:translate3d(80px,-15vh,0);opacity:0}
+}
+@keyframes winterMist{
+    from{transform:translate3d(-4%,2%,0) scale(1)}
+    to{transform:translate3d(5%,-2%,0) scale(1.08)}
+}
+@keyframes snowDrift{
+    0%{transform:translate3d(0,-50px,0) rotate(0deg);opacity:0}
+    10%{opacity:.9}
+    50%{transform:translate3d(60px,55vh,0) rotate(180deg)}
+    90%{opacity:.85}
+    100%{transform:translate3d(-40px,112vh,0) rotate(360deg);opacity:0}
+}
+
+@media(max-width:600px){
+    .sun-core{
+        width:72px;
+        height:72px;
+        min-width:72px;
+        min-height:72px;
+        top:28px;
+        right:24px;
+    }
+    .sun-rays{
+        width:145px;
+        height:145px;
+        top:-4px;
+        right:-1px;
+    }
+}
+
+@media(prefers-reduced-motion:reduce){
+    .sun-core,.sun-rays,.sun-glow,.sun-particle,
+    .winter-mist,.snow-crystal{
+        animation:none !important;
+    }
+}
+
+
+.sun-shade{
+    position:absolute;
+    left:-8%;
+    right:-8%;
+    bottom:4%;
+    height:34%;
+    background:
+        radial-gradient(ellipse at 20% 55%,
+            rgba(255,255,255,.72) 0%,
+            rgba(255,255,255,.38) 30%,
+            transparent 63%),
+        radial-gradient(ellipse at 72% 70%,
+            rgba(255,255,255,.52) 0%,
+            rgba(255,255,255,.20) 34%,
+            transparent 68%);
+    filter:blur(18px);
+    opacity:.72;
+    animation:sunnyShade 12s ease-in-out infinite alternate;
+}
+
+@keyframes sunnyShade{
+    from{transform:translateX(-2%) scale(1)}
+    to{transform:translateX(3%) scale(1.04)}
+}
+
+
+/* =========================================================
+   SUNNY SUN POSITION — ONLY VISUAL POSITION CHANGE
+========================================================= */
+body.weather-sunny .sun-core{
+    left:auto;
+    top:42px;
+    right:48px;
+    transform:translate(0,0);
+}
+
+body.weather-sunny .sun-rays{
+    left:auto;
+    top:-2px;
+    right:4px;
+    transform:translate(0,0);
+}
+
+body.weather-sunny .sun-glow{
+    background:
+        radial-gradient(circle at calc(100% - 92px) 88px,
+            rgba(255,246,190,.16),
+            transparent 25%),
+        radial-gradient(circle at 82% 18%,
+            rgba(255,220,120,.08),
+            transparent 32%);
+}
+
+
+/* =========================================================
+   REALISTIC SUNNY SUN — ADDED VISUAL ONLY
+   Does not change weather/API/dashboard logic.
+========================================================= */
+
+#weatherScene{
+    z-index:0;
+}
+
+body.weather-sunny #sunScene{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    display:block;
+}
+
+body.weather-sunny .sun-core{
+    width:126px;
+    height:126px;
+    top:38px;
+    right:42px;
+    left:auto;
+    border-radius:50%;
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #ffffff 0%,
+            #fffde9 8%,
+            #fff5b5 22%,
+            #ffd84d 43%,
+            #ffbd32 63%,
+            #ff9820 78%,
+            rgba(255,143,18,.72) 88%,
+            rgba(255,143,18,0) 100%
+        );
+    box-shadow:
+        0 0 12px rgba(255,255,225,.95),
+        0 0 28px rgba(255,235,140,.92),
+        0 0 60px rgba(255,204,76,.72),
+        0 0 115px rgba(255,173,35,.42),
+        0 0 180px rgba(255,154,25,.20);
+    filter:saturate(1.08) brightness(1.08);
+    animation:realisticSunPulseEnhanced 5.5s ease-in-out infinite;
+}
+
+/* Subtle solar surface detail */
+body.weather-sunny .sun-core::before{
+    content:"";
+    position:absolute;
+    inset:8%;
+    border-radius:50%;
+    background:
+        radial-gradient(circle at 28% 34%,rgba(255,255,225,.34) 0 4%,transparent 9%),
+        radial-gradient(circle at 68% 28%,rgba(255,185,35,.22) 0 7%,transparent 13%),
+        radial-gradient(circle at 57% 66%,rgba(255,150,20,.20) 0 8%,transparent 15%),
+        radial-gradient(circle at 31% 72%,rgba(255,225,100,.18) 0 6%,transparent 12%),
+        repeating-radial-gradient(
+            circle at 50% 50%,
+            rgba(255,255,210,.08) 0 2px,
+            rgba(255,170,30,.05) 3px 7px,
+            transparent 8px 13px
+        );
+    mix-blend-mode:screen;
+    opacity:.9;
+    animation:sunSurfaceDrift 9s linear infinite;
+}
+
+/* Hot atmospheric corona */
+body.weather-sunny .sun-core::after{
+    content:"";
+    position:absolute;
+    inset:-32px;
+    border-radius:50%;
+    background:
+        radial-gradient(
+            circle,
+            transparent 0 48%,
+            rgba(255,242,164,.24) 55%,
+            rgba(255,197,62,.14) 65%,
+            transparent 76%
+        );
+    filter:blur(5px);
+    opacity:.85;
+    animation:sunCorona 4.5s ease-in-out infinite;
+}
+
+/* More natural soft rays */
+body.weather-sunny .sun-rays{
+    width:245px;
+    height:245px;
+    top:-22px;
+    right:-18px;
+    left:auto;
+    border-radius:50%;
+    background:
+        repeating-conic-gradient(
+            from 2deg,
+            rgba(255,250,190,.34) 0deg 1.2deg,
+            transparent 1.2deg 13deg
+        );
+    -webkit-mask:
+        radial-gradient(
+            circle,
+            transparent 0 37%,
+            #000 45% 55%,
+            transparent 67%
+        );
+    mask:
+        radial-gradient(
+            circle,
+            transparent 0 37%,
+            #000 45% 55%,
+            transparent 67%
+        );
+    filter:blur(.6px);
+    opacity:.72;
+    animation:rotateSunEnhanced 48s linear infinite;
+}
+
+/* Broad sunlight bloom */
+body.weather-sunny .sun-glow{
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(
+            circle at calc(100% - 105px) 102px,
+            rgba(255,249,205,.30) 0%,
+            rgba(255,226,130,.16) 10%,
+            rgba(255,194,65,.08) 22%,
+            transparent 43%
+        ),
+        radial-gradient(
+            ellipse at 85% 18%,
+            rgba(255,223,130,.10),
+            transparent 38%
+        );
+    pointer-events:none;
+    animation:sunAtmosphereGlow 6s ease-in-out infinite;
+}
+
+/* Fine rays around the corona */
+body.weather-sunny #sunScene::before{
+    content:"";
+    position:absolute;
+    width:360px;
+    height:360px;
+    top:-78px;
+    right:-76px;
+    border-radius:50%;
+    background:
+        repeating-conic-gradient(
+            from 0deg,
+            rgba(255,244,170,.10) 0deg 1deg,
+            transparent 1deg 9deg
+        );
+    -webkit-mask:
+        radial-gradient(
+            circle,
+            transparent 0 42%,
+            #000 50%,
+            transparent 70%
+        );
+    mask:
+        radial-gradient(
+            circle,
+            transparent 0 42%,
+            #000 50%,
+            transparent 70%
+        );
+    filter:blur(1px);
+    opacity:.55;
+    animation:outerSolarRays 65s linear infinite;
+}
+
+@keyframes realisticSunPulseEnhanced{
+    0%,100%{
+        transform:scale(1);
+        filter:saturate(1.08) brightness(1.06);
+    }
+    50%{
+        transform:scale(1.035);
+        filter:saturate(1.12) brightness(1.12);
+    }
+}
+
+@keyframes sunSurfaceDrift{
+    from{transform:rotate(0deg) scale(1)}
+    to{transform:rotate(360deg) scale(1.02)}
+}
+
+@keyframes sunCorona{
+    0%,100%{
+        transform:scale(.94);
+        opacity:.62;
+    }
+    50%{
+        transform:scale(1.08);
+        opacity:1;
+    }
+}
+
+@keyframes rotateSunEnhanced{
+    to{transform:rotate(360deg)}
+}
+
+@keyframes sunAtmosphereGlow{
+    0%,100%{opacity:.65;transform:scale(.98)}
+    50%{opacity:1;transform:scale(1.035)}
+}
+
+@keyframes outerSolarRays{
+    to{transform:rotate(360deg)}
+}
+
+@media(max-width:600px){
+    body.weather-sunny .sun-core{
+        width:88px;
+        height:88px;
+        top:25px;
+        right:22px;
+    }
+
+    body.weather-sunny .sun-rays{
+        width:175px;
+        height:175px;
+        top:-18px;
+        right:-20px;
+    }
+
+    body.weather-sunny #sunScene::before{
+        width:260px;
+        height:260px;
+        top:-48px;
+        right:-50px;
+    }
+}
+
+
+/* =========================================================
+   PARTLY CLOUDY ANIMATION — VISUAL ONLY
+   Open-Meteo weather code 2
+========================================================= */
+
+body.weather-sunny.weather-partly-cloudy #sunScene::after{
+    content:"";
+    position:absolute;
+    width:260px;
+    height:105px;
+    top:58px;
+    right:185px;
+    border-radius:100px;
+    background:
+        radial-gradient(circle at 28% 58%,rgba(255,255,255,.78) 0 25%,transparent 26%),
+        radial-gradient(circle at 48% 40%,rgba(255,255,255,.86) 0 34%,transparent 35%),
+        radial-gradient(circle at 69% 59%,rgba(245,249,255,.72) 0 27%,transparent 28%),
+        linear-gradient(180deg,rgba(255,255,255,.72),rgba(210,220,232,.50));
+    filter:blur(3px);
+    opacity:.78;
+    box-shadow:0 12px 28px rgba(80,100,120,.10);
+    animation:partlyCloudDrift 18s ease-in-out infinite alternate;
+}
+
+body.weather-sunny.weather-partly-cloudy #sunScene .partly-cloud-shade{
+    display:block;
+    position:absolute;
+    width:330px;
+    height:120px;
+    top:145px;
+    right:45px;
+    border-radius:100px;
+    background:
+        radial-gradient(circle at 30% 56%,rgba(255,255,255,.58) 0 25%,transparent 26%),
+        radial-gradient(circle at 51% 39%,rgba(255,255,255,.68) 0 35%,transparent 36%),
+        radial-gradient(circle at 74% 58%,rgba(235,242,250,.62) 0 28%,transparent 29%);
+    filter:blur(5px);
+    opacity:.52;
+    animation:partlyCloudDrift2 24s ease-in-out infinite alternate;
+}
+
+@keyframes partlyCloudDrift{
+    from{transform:translateX(24px) translateY(0) scale(.96)}
+    to{transform:translateX(-38px) translateY(13px) scale(1.03)}
+}
+
+@keyframes partlyCloudDrift2{
+    from{transform:translateX(-22px) translateY(4px)}
+    to{transform:translateX(35px) translateY(-8px)}
+}
+
+@media(max-width:600px){
+    body.weather-sunny.weather-partly-cloudy #sunScene::after{
+        width:180px;
+        height:75px;
+        top:44px;
+        right:105px;
+    }
+
+    body.weather-sunny.weather-partly-cloudy #sunScene .partly-cloud-shade{
+        width:210px;
+        height:85px;
+        top:112px;
+        right:12px;
+    }
+}
+
+
+/* =========================================================
+   OOTY SNOW EFFECT — VISUAL ONLY
+   Ooty uses a winter/snow atmosphere instead of the sun.
+========================================================= */
+
+body.weather-ooty-snow #sunScene{
+    display:block;
+}
+
+body.weather-ooty-snow .sun-core,
+body.weather-ooty-snow .sun-rays,
+body.weather-ooty-snow .sun-glow{
+    display:none !important;
+}
+
+body.weather-ooty-snow #sunScene::before{
+    content:"";
+    position:absolute;
+    inset:-20%;
+    pointer-events:none;
+    background:
+        radial-gradient(circle at 20% 15%,rgba(255,255,255,.95) 0 2px,transparent 3px),
+        radial-gradient(circle at 65% 30%,rgba(255,255,255,.9) 0 2px,transparent 3px),
+        radial-gradient(circle at 85% 65%,rgba(255,255,255,.9) 0 3px,transparent 4px),
+        radial-gradient(circle at 35% 75%,rgba(255,255,255,.8) 0 2px,transparent 3px);
+    background-size:95px 120px,145px 170px,180px 155px,125px 145px;
+    filter:blur(.3px);
+    opacity:.9;
+    animation:ootySnowfall 12s linear infinite;
+}
+
+body.weather-ooty-snow #sunScene::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(220,235,248,.16),
+            rgba(190,215,235,.08) 45%,
+            rgba(245,250,255,.18)
+        );
+    animation:ootyWinterMist 7s ease-in-out infinite alternate;
+}
+
+@keyframes ootySnowfall{
+    from{transform:translate3d(0,-8%,0) rotate(0deg)}
+    to{transform:translate3d(-7%,12%,0) rotate(5deg)}
+}
+
+@keyframes ootyWinterMist{
+    from{opacity:.35}
+    to{opacity:.75}
+}
+
+
+
+/* =========================================================
+   LOGIN PAGE
+========================================================= */
+#loginPage{
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:
+        radial-gradient(circle at 20% 20%,rgba(0,255,200,.14),transparent 32%),
+        radial-gradient(circle at 80% 20%,rgba(120,80,255,.16),transparent 32%),
+        linear-gradient(135deg,#07111f,#10182b,#07151d);
+    overflow:auto;
+}
+
+.login-card{
+    width:min(430px,100%);
+    padding:34px;
+    border:1px solid rgba(120,180,220,.18);
+    border-radius:28px;
+    background:rgba(9,22,37,.88);
+    backdrop-filter:blur(22px);
+    box-shadow:0 30px 100px rgba(0,0,0,.45);
+}
+
+.login-brand{
+    text-align:center;
+    margin-bottom:26px;
+}
+
+.login-brand .login-icon{
+    width:66px;
+    height:66px;
+    margin:0 auto 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:20px;
+    font-size:32px;
+    background:linear-gradient(145deg,rgba(18,218,191,.25),rgba(84,105,255,.25));
+    border:1px solid rgba(110,235,220,.35);
+    box-shadow:0 0 28px rgba(30,220,190,.18);
+}
+
+.login-brand h1{
+    font-size:29px;
+    margin-bottom:8px;
+    background:linear-gradient(90deg,#fff,#b8fff2,#aebcff);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.login-brand p{
+    color:#91a6b9;
+    font-size:14px;
+}
+
+.login-google,
+.login-secondary{
+    width:100%;
+    min-height:50px;
+    border-radius:14px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:600;
+    transition:.2s ease;
+}
+
+.login-google{
+    border:1px solid rgba(255,255,255,.12);
+    background:#fff;
+    color:#202124;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+}
+
+.login-google:hover,
+.login-secondary:hover{
+    transform:translateY(-2px);
+}
+
+.google-mark{
+    font-size:20px;
+    font-weight:800;
+}
+
+.login-divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:22px 0;
+    color:#64788c;
+    font-size:12px;
+}
+
+.login-divider::before,
+.login-divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:rgba(255,255,255,.09);
+}
+
+.login-tabs{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:7px;
+    padding:5px;
+    border-radius:13px;
+    background:rgba(255,255,255,.035);
+    margin-bottom:18px;
+}
+
+.login-tab{
+    border:0;
+    border-radius:10px;
+    padding:10px;
+    cursor:pointer;
+    background:transparent;
+    color:#8195a8;
+    font-weight:600;
+}
+
+.login-tab.active{
+    color:white;
+    background:rgba(255,255,255,.09);
+}
+
+.login-form{
+    display:none;
+}
+
+.login-form.active{
+    display:block;
+}
+
+.login-field{
+    margin-bottom:13px;
+}
+
+.login-field label{
+    display:block;
+    color:#9eb0c1;
+    font-size:12px;
+    margin-bottom:7px;
+}
+
+.login-field input{
+    width:100%;
+    padding:14px 15px;
+    border-radius:13px;
+    border:1px solid rgba(120,180,220,.15);
+    outline:none;
+    background:#0a1726;
+    color:white;
+    font-size:14px;
+}
+
+.login-field input:focus{
+    border-color:rgba(70,220,195,.45);
+}
+
+.login-secondary{
+    border:0;
+    color:white;
+    background:linear-gradient(135deg,#13bda6,#5369e9);
+    margin-top:4px;
+}
+
+.login-note{
+    margin-top:16px;
+    text-align:center;
+    color:#697f92;
+    font-size:11px;
+    line-height:1.5;
+}
+
+.login-status{
+    min-height:18px;
+    margin-top:10px;
+    text-align:center;
+    color:#7dffd8;
+    font-size:12px;
+}
+
+.login-logout{
+    display:none;
+    position:fixed;
+    top:18px;
+    right:18px;
+    z-index:9998;
+    padding:9px 13px;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:20px;
+    color:#cbd8e3;
+    background:rgba(9,22,37,.75);
+    cursor:pointer;
+}
+
+@media(max-width:520px){
+    .login-card{padding:25px 20px;}
+}
+
+</style>
+</head>
+
+
+<body>
+
+<!-- =========================================================
+     WEATHERGPT LOGIN PAGE
+========================================================= -->
+<div id="loginPage">
+    <div class="login-card">
+
+        <div class="login-brand">
+            <div class="login-icon">🌦️</div>
+            <h1>Welcome to WeatherGPT</h1>
+            <p>Your intelligent AI weather assistant</p>
+        </div>
+
+        <button class="login-google" id="googleLoginBtn" type="button">
+            <span class="google-mark">G</span>
+            Continue with Google
+        </button>
+
+        <div class="login-divider">OR</div>
+
+        <div class="login-tabs">
+            <button class="login-tab active" id="emailTab" type="button">Email</button>
+        </div>
+
+        <form class="login-form active" id="emailLoginForm">
+            <div class="login-field">
+                <label for="loginEmail">Email address</label>
+                <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email" required>
+            </div>
+
+            <div class="login-field password-field">
+                <label for="loginPassword">Password</label>
+                <div class="password-input-wrap">
+                    <input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+                    <button class="password-toggle" id="passwordToggle" type="button" aria-label="Show password">Show</button>
+                </div>
+            </div>
+
+            <button class="login-secondary" type="submit">Continue with Email</button>
+        </form>
+
+        <div class="login-status" id="loginStatus"></div>
+
+        <div class="login-note">
+            By continuing, you agree to use WeatherGPT responsibly.<br>
+            Your existing WeatherGPT dashboard opens after authentication.
+        </div>
+
+    </div>
+</div>
+
+<button class="login-logout" id="logoutBtn" type="button">Log out</button>
+
+
+
+<!-- Enhanced weather-reactive background scene -->
+<div id="weatherScene" aria-hidden="true">
+    <div class="weather-overlay" id="sunScene" style="display:none;">
+        <div class="sun-glow"></div>
+        <div class="sun-shade"></div>
+        <div class="sun-rays"></div>
+        <div class="sun-core"></div>
+        <div id="sunParticles"></div>
+    </div>
+
+    <div class="weather-overlay" id="winterScene" style="display:none;">
+        <div class="winter-mist"></div>
+        <div class="winter-mountain"></div>
+        <div class="frost-edge"></div>
+        <div id="winterSnow"></div>
+    </div>
+</div>
+
+<!-- =======================================================
+     ATMOSPHERE
+======================================================= -->
+
+<div id="atmosphere">
+
+    <div id="skyGlow"></div>
+    <div id="sunOrb"><span></span></div>
+    <div id="clouds"></div>
+    <div id="rain"></div>
+    <div id="snow"></div>
+    <div id="ice"></div>
+    <div id="fog"></div>
+    <div id="wind"></div>
+    <div id="lightning"></div>
+    <div id="heatHaze"></div>
+
+</div>
+
+
+<div class="app">
+
+
+<!-- =======================================================
+     HEADER
+======================================================= -->
+
+<header class="header">
+
+    <div class="logo">
+
+        <!-- =================================================
+             PROFESSIONAL WEATHERGPT SVG LOGO
+        ================================================== -->
+
+        <div class="logo-icon">
+
+            <svg
+                class="weather-logo-svg"
+                viewBox="0 0 64 64"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+
+                <!-- AI circuit lines -->
+
+                <g
+                    fill="none"
+                    stroke="rgba(120,255,230,.75)"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                >
+
+                    <path d="M8 18 L17 18 L22 23"/>
+
+                    <path d="M7 42 L17 42 L22 37"/>
+
+                    <path d="M47 24 L55 19"/>
+
+                    <path d="M47 39 L55 44"/>
+
+                </g>
+
+
+                <!-- AI nodes -->
+
+                <circle
+                    class="ai-node"
+                    cx="8"
+                    cy="18"
+                    r="2"
+                    fill="#5ff1d4"
+                />
+
+                <circle
+                    class="ai-node"
+                    cx="7"
+                    cy="42"
+                    r="2"
+                    fill="#6b83ff"
+                />
+
+                <circle
+                    class="ai-node"
+                    cx="55"
+                    cy="19"
+                    r="2"
+                    fill="#62dfff"
+                />
+
+                <circle
+                    class="ai-node"
+                    cx="55"
+                    cy="44"
+                    r="2"
+                    fill="#6b83ff"
+                />
+
+
+                <!-- Sun -->
+
+                <g
+                    class="logo-sun"
+                    fill="none"
+                    stroke="#ffd86b"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                >
+
+                    <circle
+                        cx="32"
+                        cy="13"
+                        r="5"
+                        fill="#ffd86b"
+                        stroke="none"
+                    />
+
+                    <path d="M32 4 V1"/>
+
+                    <path d="M32 25 V28"/>
+
+                    <path d="M23 13 H20"/>
+
+                    <path d="M44 13 H47"/>
+
+                    <path d="M25.5 6.5 L23.5 4.5"/>
+
+                    <path d="M38.5 19.5 L41 22"/>
+
+                    <path d="M38.5 6.5 L41 4"/>
+
+                    <path d="M25.5 19.5 L23 22"/>
+
+                </g>
+
+
+                <!-- Cloud -->
+
+                <g
+                    class="logo-cloud"
+                    fill="none"
+                    stroke="#ffffff"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+
+                    <path
+                        d="
+                            M17 39
+                            C17 34 21 31 25 31
+                            C27 27 31 25 35 27
+                            C39 27 42 30 42 34
+                            C47 34 50 37 50 41
+                            C50 45 47 48 43 48
+                            H23
+                            C19 48 16 45 17 39
+                        "
+                        fill="rgba(255,255,255,.08)"
+                    />
+
+                </g>
+
+
+                <!-- AI circuit inside cloud -->
+
+                <g
+                    fill="none"
+                    stroke="#55e5cc"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                >
+
+                    <path d="M25 40 H31"/>
+
+                    <path d="M31 40 V36 H38"/>
+
+                    <path d="M31 40 V44 H37"/>
+
+                </g>
+
+
+                <circle
+                    cx="25"
+                    cy="40"
+                    r="2"
+                    fill="#55e5cc"
+                />
+
+                <circle
+                    cx="38"
+                    cy="36"
+                    r="2"
+                    fill="#607aff"
+                />
+
+                <circle
+                    cx="37"
+                    cy="44"
+                    r="2"
+                    fill="#607aff"
+                />
+
+            </svg>
+
+        </div>
+
+
+        <div class="logo-text">
+
+            <h1>
+                WeatherGPT
+            </h1>
+
+            <p>
+                Conversational AI for Weather Intelligence
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="status">
+        ● LIVE WEATHER
+    </div>
+
+</header>
+
+
+<!-- =======================================================
+     LOCATION SEARCH
+======================================================= -->
+
+<div class="search-box">
+
+    <input
+        id="locationInput"
+        type="text"
+        placeholder="Search city... e.g. Kadapa, Hyderabad, Delhi"
+        onkeydown="locationKey(event)"
+    >
+
+    <button onclick="searchLocation()">
+        Search Weather
+    </button>
+
+</div>
+
+
+<!-- =======================================================
+     DASHBOARD
+======================================================= -->
+
+<div class="dashboard">
+
+
+<!-- CURRENT WEATHER -->
+
+<section class="card current">
+
+    <div class="current-top">
+
+        <div class="location">
+
+            Current Weather
+
+            <strong id="location">
+                Searching...
+            </strong>
+
+        </div>
+
+        <div
+            class="current-icon"
+            id="weatherIcon"
+        >
+            🌤️
+        </div>
+
+    </div>
+
+
+    <div class="temperature">
+
+        <span id="temperature">
+            --
+        </span>
+
+        <span class="degree">
+            °C
+        </span>
+
+    </div>
+
+
+    <div
+        class="condition"
+        id="condition"
+    >
+        Loading weather...
+    </div>
+
+
+    <div class="metrics">
+
+        <div class="metric">
+
+            <small>
+                Feels Like
+            </small>
+
+            <strong id="feels">
+                --
+            </strong>
+
+        </div>
+
+
+        <div class="metric">
+
+            <small>
+                Humidity
+            </small>
+
+            <strong id="humiditySmall">
+                --
+            </strong>
+
+        </div>
+
+
+        <div class="metric">
+
+            <small>
+                Wind
+            </small>
+
+            <strong id="windSmall">
+                --
+            </strong>
+
+        </div>
+
+
+        <div class="metric">
+
+            <small>
+                Rain Chance
+            </small>
+
+            <strong id="rainProbability">
+                --
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="alert">
+
+        <h3 id="alertTitle">
+            WEATHER MONITORING
+        </h3>
+
+        <p id="alertText">
+            Connecting to live weather data...
+        </p>
+
+    </div>
+
+</section>
+
+
+<!-- AI ANALYSIS -->
+
+<section class="card analysis">
+
+    <h2>
+        AI Weather Analysis
+    </h2>
+
+
+    <div class="analysis-item">
+
+        <div class="analysis-head">
+
+            <span>
+                Rain Risk
+            </span>
+
+            <span id="rainScore">
+                --
+            </span>
+
+        </div>
+
+        <div class="bar">
+
+            <div id="rainBar"></div>
+
+        </div>
+
+        <p
+            class="analysis-text"
+            id="rainInsight"
+        >
+            Waiting for weather data...
+        </p>
+
+    </div>
+
+
+    <div class="analysis-item">
+
+        <div class="analysis-head">
+
+            <span>
+                Heat Level
+            </span>
+
+            <span id="heatScore">
+                --
+            </span>
+
+        </div>
+
+        <div class="bar">
+
+            <div id="heatBar"></div>
+
+        </div>
+
+        <p
+            class="analysis-text"
+            id="heatInsight"
+        >
+            Waiting for weather data...
+        </p>
+
+    </div>
+
+
+    <div class="analysis-item">
+
+        <div class="analysis-head">
+
+            <span>
+                Travel
+            </span>
+
+            <span id="travelScore">
+                --
+            </span>
+
+        </div>
+
+        <div class="bar">
+
+            <div id="travelBar"></div>
+
+        </div>
+
+        <p
+            class="analysis-text"
+            id="travelInsight"
+        >
+            Waiting for weather data...
+        </p>
+
+    </div>
+
+
+    <div class="analysis-item">
+
+        <div class="analysis-head">
+
+            <span>
+                Visibility
+            </span>
+
+            <span id="visibilitySmall">
+                --
+            </span>
+
+        </div>
+
+        <div class="bar">
+
+            <div
+                id="visibilityBar"
+                style="width:70%"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+    <div class="analysis-item">
+
+        <div class="analysis-head">
+
+            <span>
+                UV Index
+            </span>
+
+            <span id="uvSmall">
+                --
+            </span>
+
+        </div>
+
+        <div class="bar">
+
+            <div id="uvBar"></div>
+
+        </div>
+
+    </div>
+
+</section>
+
+</div>
+
+
+<!-- =======================================================
+     FORECAST
+======================================================= -->
+
+<section class="card forecast">
+
+    <h2>
+        7-Day Forecast
+    </h2>
+
+    <div
+        id="forecastGrid"
+        class="forecast-grid"
+    ></div>
+
+</section>
+
+
+<!-- =======================================================
+     CHATBOT
+======================================================= -->
+
+<section class="card chat">
+
+    <h2>
+        🤖 WeatherGPT Assistant
+    </h2>
+
+
+    <div
+        id="messages"
+        class="messages"
+    >
+
+        <div class="message bot-message">
+
+            👋 <strong>Hello!</strong>
+
+            <br><br>
+
+            I'm WeatherGPT. Ask me about weather
+            for any city.
+
+            <br><br>
+
+            For example:
+
+            <br>
+
+            • Will it rain in Kadapa?
+
+            <br>
+
+            • What is the temperature in Hyderabad?
+
+            <br>
+
+            • How humid is Delhi?
+
+            <br>
+
+            • Is it windy in Chennai?
+
+            <br>
+
+            • What is tomorrow's weather in Mumbai?
+
+        </div>
+
+    </div>
+
+
+    <div class="chat-input">
+
+        <input
+            id="question"
+            type="text"
+            placeholder="Ask WeatherGPT anything..."
+            onkeydown="chatKey(event)"
+        >
+
+        <button onclick="voiceInput()">
+            🎤
+        </button>
+
+        <button onclick="askWeather()">
+            Send
+        </button>
+
+    </div>
+
+
+    <div class="quick">
+
+        <button onclick="quick('Will it rain today?')">
+            🌧️ Rain
+        </button>
+
+        <button onclick="quick('What is the temperature?')">
+            🌡️ Temperature
+        </button>
+
+        <button onclick="quick('Is it windy?')">
+            💨 Wind
+        </button>
+
+        <button onclick="quick('What is the humidity?')">
+            💧 Humidity
+        </button>
+
+        <button onclick="quick('Can I travel today?')">
+            🚗 Travel
+        </button>
+
+    </div>
+
+</section>
+
+</div>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
+
+<script>
+
+/* =========================================================
+   WEATHER STATE
+========================================================= */
+
+let weather = {
+
+    location:"",
+
+    temperature:0,
+
+    feels:0,
+
+    humidity:0,
+
+    wind:0,
+
+    rain:0,
+
+    visibility:0,
+
+    uv:0,
+
+    condition:"Loading...",
+
+    weatherCode:0,
+
+    localHour:12,
+
+    tomorrowRain:0,
+
+    tomorrowMax:0,
+
+    tomorrowMin:0
+
+};
+
+let liveWeatherData = null;
+
+
+/* =========================================================
+   ATMOSPHERE
+========================================================= */
+function createStars(){const atmosphere=document.getElementById("atmosphere");for(let i=0;i<80;i++){const star=document.createElement("div");star.className="star";star.style.left=Math.random()*100+"%";star.style.top=Math.random()*65+"%";star.style.animationDelay=Math.random()*4+"s";star.style.animationDuration=2+Math.random()*4+"s";atmosphere.appendChild(star)}}
+function createRain(){const rain=document.getElementById("rain");for(let i=0;i<105;i++){const drop=document.createElement("div");drop.className="raindrop";drop.style.left=Math.random()*110+"%";drop.style.animationDuration=(.42+Math.random()*.8)+"s";drop.style.animationDelay=Math.random()*2.5+"s";drop.style.opacity=.15+Math.random()*.65;rain.appendChild(drop)}for(let i=0;i<18;i++){const splash=document.createElement("div");splash.className="rain-splash";splash.style.left=Math.random()*100+"%";splash.style.top=75+Math.random()*23+"%";splash.style.animationDelay=Math.random()+"s";rain.appendChild(splash)}}
+function createWind(){const wind=document.getElementById("wind");for(let i=0;i<22;i++){const line=document.createElement("div");line.className="wind-line";line.style.width=70+Math.random()*230+"px";line.style.top=8+Math.random()*84+"%";line.style.animationDuration=2+Math.random()*4.5+"s";line.style.animationDelay=Math.random()*4+"s";wind.appendChild(line)}for(let i=0;i<8;i++){const ribbon=document.createElement("div");ribbon.className="wind-ribbon";ribbon.style.width=120+Math.random()*260+"px";ribbon.style.top=15+Math.random()*70+"%";ribbon.style.animationDuration=4+Math.random()*5+"s";ribbon.style.animationDelay=Math.random()*5+"s";wind.appendChild(ribbon)}}
+function createClouds(){const clouds=document.getElementById("clouds");["c1","c2","c3"].forEach(cls=>{const cloud=document.createElement("div");cloud.className="cloud-layer "+cls;clouds.appendChild(cloud)})}
+function createSnow(){const snow=document.getElementById("snow");for(let i=0;i<55;i++){const flake=document.createElement("div");flake.className="snowflake";flake.textContent=i%3===0?"❄":"•";flake.style.left=Math.random()*100+"%";flake.style.fontSize=7+Math.random()*15+"px";flake.style.animationDuration=6+Math.random()*9+"s";flake.style.animationDelay=-Math.random()*12+"s";snow.appendChild(flake)}}
+function createIce(){const ice=document.getElementById("ice");for(let i=0;i<24;i++){const crystal=document.createElement("div");crystal.className="ice-crystal";crystal.style.left=Math.random()*100+"%";crystal.style.top=10+Math.random()*80+"%";crystal.style.animationDuration=3+Math.random()*5+"s";crystal.style.animationDelay=-Math.random()*6+"s";ice.appendChild(crystal)}}
+function scheduleLightning(){const lightning=document.getElementById("lightning");const flash=()=>{if(document.body.classList.contains("storm-weather")){lightning.classList.remove("flash");void lightning.offsetWidth;lightning.classList.add("flash")}setTimeout(flash,3500+Math.random()*8500)};setTimeout(flash,5000+Math.random()*6000)}
+
+/* =========================================================
+   OPEN-METEO LOCATION SEARCH
+========================================================= */
+
+async function findLocation(city){
+
+    const requestedLocation =
+        city.trim().toLowerCase();
+
+    /* =====================================================
+       BLOCK CONTINENT SEARCH
+    ===================================================== */
+    const continents = [
+        "africa",
+        "antarctica",
+        "asia",
+        "europe",
+        "north america",
+        "south america",
+        "australia",
+        "oceania"
+    ];
+
+    if(continents.includes(requestedLocation)){
+        throw new Error("STATE_CITY_ONLY");
+    }
+
+    /* =====================================================
+       GEOCODING SEARCH
+       Keep the existing Open-Meteo API, but request enough
+       results so a state is not hidden behind city results.
+    ===================================================== */
+    async function searchGeocoding(name){
+        const url =
+            "https://geocoding-api.open-meteo.com/v1/search" +
+            "?name="+encodeURIComponent(name) +
+            "&count=100" +
+            "&language=en" +
+            "&format=json";
+
+        const response =
+            await fetch(url);
+
+        if(!response.ok){
+            throw new Error(
+                "Location search failed"
+            );
+        }
+
+        return await response.json();
+    }
+
+    let data =
+        await searchGeocoding(city);
+
+    if(
+        !data.results ||
+        data.results.length===0
+    ){
+        throw new Error(
+            "Location not found"
+        );
+    }
+
+    /* =====================================================
+       COUNTRY CHECK
+    ===================================================== */
+    const exactCountry =
+        data.results.find(
+            item =>
+                String(item.name || "")
+                    .trim()
+                    .toLowerCase() === requestedLocation &&
+                String(item.feature_code || "")
+                    .toUpperCase()
+                    .startsWith("PCL")
+        );
+
+    if(exactCountry){
+        throw new Error("STATE_CITY_ONLY");
+    }
+
+    /* =====================================================
+       STATE CHECK
+       ADM1 = first-level administrative area/state.
+    ===================================================== */
+    const exactState =
+        data.results.find(
+            item =>
+                String(item.name || "")
+                    .trim()
+                    .toLowerCase() === requestedLocation &&
+                (
+                    String(item.feature_code || "")
+                        .toUpperCase() === "ADM1" ||
+                    String(item.feature_code || "")
+                        .toUpperCase()
+                        .startsWith("ADM1")
+                )
+        );
+
+    if(exactState){
+        return exactState;
+    }
+
+    /* =====================================================
+       INDIA STATE FALLBACK
+       Search with "state, India" so the geocoder can return
+       the administrative state rather than a same-name city.
+    ===================================================== */
+    const indiaStateNames = [
+        "andhra pradesh",
+        "arunachal pradesh",
+        "assam",
+        "bihar",
+        "chhattisgarh",
+        "goa",
+        "gujarat",
+        "haryana",
+        "himachal pradesh",
+        "jharkhand",
+        "karnataka",
+        "kerala",
+        "madhya pradesh",
+        "maharashtra",
+        "manipur",
+        "meghalaya",
+        "mizoram",
+        "nagaland",
+        "odisha",
+        "punjab",
+        "rajasthan",
+        "sikkim",
+        "tamil nadu",
+        "telangana",
+        "tripura",
+        "uttar pradesh",
+        "uttarakhand",
+        "west bengal",
+        "andaman and nicobar islands",
+        "chandigarh",
+        "dadra and nagar haveli and daman and diu",
+        "delhi",
+        "jammu and kashmir",
+        "ladakh",
+        "lakshadweep",
+        "puducherry"
+    ];
+
+    if(
+        indiaStateNames.includes(requestedLocation)
+    ){
+
+        const indiaData =
+            await searchGeocoding(
+                city + ", India"
+            );
+
+        const indiaState =
+            (indiaData.results || []).find(
+                item =>
+                    String(item.country_code || "")
+                        .toLowerCase() === "in" &&
+                    String(item.name || "")
+                        .trim()
+                        .toLowerCase() === requestedLocation &&
+                    (
+                        String(item.feature_code || "")
+                            .toUpperCase() === "ADM1" ||
+                        String(item.feature_code || "")
+                            .toUpperCase()
+                            .startsWith("ADM1")
+                    )
+            );
+
+        if(indiaState){
+            return indiaState;
+        }
+
+        /* Some geocoding responses identify the state through
+           admin1 even if feature_code is not ADM1. */
+        const adminState =
+            (indiaData.results || []).find(
+                item =>
+                    String(item.country_code || "")
+                        .toLowerCase() === "in" &&
+                    String(item.admin1 || "")
+                        .trim()
+                        .toLowerCase() === requestedLocation
+            );
+
+        if(adminState){
+            return adminState;
+        }
+    }
+
+    /* =====================================================
+       EXISTING CITY / PLACE BEHAVIOUR
+    ===================================================== */
+    const exact =
+        data.results.find(
+            item =>
+                String(item.name || "")
+                    .trim()
+                    .toLowerCase() === requestedLocation &&
+                !String(item.feature_code || "")
+                    .toUpperCase()
+                    .startsWith("PCL")
+        );
+
+    if(exact){
+        return exact;
+    }
+
+    const sameCountry =
+        data.results.filter(
+            item =>
+                String(item.country_code || "")
+                    .toLowerCase() === "in" &&
+                !String(item.feature_code || "")
+                    .toUpperCase()
+                    .startsWith("PCL")
+        );
+
+    const sameName =
+        sameCountry.find(
+            item =>
+                String(item.name || "")
+                    .trim()
+                    .toLowerCase() === requestedLocation
+        );
+
+    if(sameName){
+        return sameName;
+    }
+
+    return sameCountry[0] || data.results[0];
+}
+
+
+/* =========================================================
+   OPEN-METEO WEATHER
+========================================================= */
+
+async function fetchLiveWeather(
+    latitude,
+    longitude
+){
+
+    const url =
+        "https://api.open-meteo.com/v1/forecast" +
+
+        "?latitude="+latitude +
+
+        "&longitude="+longitude +
+
+        "&current="+
+        "temperature_2m,"+
+        "relative_humidity_2m,"+
+        "apparent_temperature,"+
+        "precipitation,"+
+        "rain,"+
+        "weather_code,"+
+        "wind_speed_10m,"+
+        "uv_index" +
+
+        "&hourly="+
+        "visibility,"+
+        "precipitation_probability,"+
+        "rain,"+
+        "weather_code" +
+
+        "&daily="+
+        "temperature_2m_max,"+
+        "temperature_2m_min,"+
+        "precipitation_probability_max,"+
+        "rain_sum,"+
+        "weather_code" +
+
+        "&forecast_days=7" +
+
+        "&timezone=auto";
+
+    const response =
+        await fetch(url);
+
+    if(!response.ok){
+
+        throw new Error(
+            "Weather request failed"
+        );
+
+    }
+
+    return await response.json();
+
+}
+
+
+/* =========================================================
+   WEATHER CODE
+========================================================= */
+
+function weatherCodeText(code){
+
+    const codes={
+
+        0:"Clear Sky",
+
+        1:"Mainly Clear",
+
+        2:"Partly Cloudy",
+
+        3:"Overcast",
+
+        45:"Fog",
+
+        48:"Rime Fog",
+
+        51:"Light Drizzle",
+
+        53:"Moderate Drizzle",
+
+        55:"Dense Drizzle",
+
+        56:"Freezing Drizzle",
+
+        57:"Freezing Drizzle",
+
+        61:"Slight Rain",
+
+        63:"Moderate Rain",
+
+        65:"Heavy Rain",
+
+        66:"Freezing Rain",
+
+        67:"Heavy Freezing Rain",
+
+        71:"Slight Snow",
+
+        73:"Moderate Snow",
+
+        75:"Heavy Snow",
+
+        77:"Snow Grains",
+
+        80:"Rain Showers",
+
+        81:"Moderate Rain Showers",
+
+        82:"Heavy Rain Showers",
+
+        85:"Snow Showers",
+
+        86:"Heavy Snow Showers",
+
+        95:"Thunderstorm",
+
+        96:"Thunderstorm with Hail",
+
+        99:"Thunderstorm with Heavy Hail"
+
+    };
+
+    return codes[code] ||
+        "Unknown Conditions";
+
+}
+
+
+function weatherIcon(code){
+
+    if(code===0){
+
+        return "☀️";
+
+    }
+
+    if(code===1 || code===2){
+
+        return "⛅";
+
+    }
+
+    if(code===3){
+
+        return "☁️";
+
+    }
+
+    if(code>=45 && code<=48){
+
+        return "🌫️";
+
+    }
+
+    if(code>=51 && code<=67){
+
+        return "🌧️";
+
+    }
+
+    if(code>=71 && code<=86){
+
+        return "❄️";
+
+    }
+
+    if(code>=95){
+
+        return "⛈️";
+
+    }
+
+    return "🌤️";
+
+}
+
+
+/* =========================================================
+   WEATHER BACKGROUND CONTROLLER
+========================================================= */
+
+function updateWeatherBackground(){
+    document.body.classList.remove("sunny-weather","cloudy-weather","rainy-weather","storm-weather","cold-weather","fog-weather","windy-weather","hot-weather","night-weather");
+    const code=weather.weatherCode,temp=weather.temperature,hour=weather.localHour;
+    const isNight=hour>=19||hour<6,isStorm=code>=95,isRain=code>=51&&code<=67,isSnow=code>=71&&code<=86,isFog=code===45||code===48,isClear=code===0||code===1,isCloudy=code===2||code===3;
+    if(isNight)document.body.classList.add("night-weather");
+    if(temp>=35)document.body.classList.add("hot-weather");
+    if(temp<=12)document.body.classList.add("cold-weather");
+    if(weather.wind>=28)document.body.classList.add("windy-weather");
+    if(isStorm){document.body.classList.add("storm-weather");return}
+    if(isSnow){document.body.classList.add("cold-weather");return}
+    if(isRain){document.body.classList.add("rainy-weather");return}
+    if(isFog){document.body.classList.add("fog-weather");return}
+    if(isClear){document.body.classList.add("sunny-weather");return}
+    if(isCloudy)document.body.classList.add("cloudy-weather");
+}
+
+/* =========================================================
+   FIND CURRENT HOUR
+========================================================= */
+
+function findCurrentHourIndex(
+    times,
+    currentTime
+){
+
+    if(
+        !Array.isArray(times) ||
+        times.length===0
+    ){
+
+        return 0;
+
+    }
+
+    const exact =
+        times.indexOf(currentTime);
+
+    if(exact!==-1){
+
+        return exact;
+
+    }
+
+    const currentMs =
+        new Date(currentTime).getTime();
+
+    let best=0;
+
+    let difference=Infinity;
+
+    times.forEach(
+        (time,index)=>{
+
+            const diff =
+                Math.abs(
+                    new Date(time).getTime()
+                    - currentMs
+                );
+
+            if(diff<difference){
+
+                difference=diff;
+
+                best=index;
+
+            }
+
+        }
+    );
+
+    return best;
+
+}
+
+
+/* =========================================================
+   UPDATE WEATHER FROM API
+========================================================= */
+
+async function updateWeatherFromAPI(city){
+
+    const location =
+        await findLocation(city);
+
+    const data =
+        await fetchLiveWeather(
+            location.latitude,
+            location.longitude
+        );
+
+    liveWeatherData=data;
+
+    const current =
+        data.current || {};
+
+    const hourly =
+        data.hourly || {};
+
+    const daily =
+        data.daily || {};
+
+
+    const hourIndex =
+        findCurrentHourIndex(
+            hourly.time,
+            current.time
+        );
+
+
+    const rainProbability =
+        Array.isArray(
+            hourly.precipitation_probability
+        )
+        ?
+        (
+            hourly.precipitation_probability[
+                hourIndex
+            ] ?? 0
+        )
+        :
+        0;
+
+
+    const visibilityMeters =
+        Array.isArray(
+            hourly.visibility
+        )
+        ?
+        (
+            hourly.visibility[
+                hourIndex
+            ] ?? 10000
+        )
+        :
+        10000;
+
+
+    weather.location =
+        location.name +
+        (
+            location.country
+            ?
+            ", "+location.country
+            :
+            ""
+        );
+
+
+    weather.temperature =
+        Math.round(
+            Number(
+                current.temperature_2m
+            )
+        );
+
+
+    weather.feels =
+        Math.round(
+            Number(
+                current.apparent_temperature
+            )
+        );
+
+
+    weather.humidity =
+        Math.round(
+            Number(
+                current.relative_humidity_2m
+            )
+        );
+
+
+    weather.wind =
+        Math.round(
+            Number(
+                current.wind_speed_10m
+            )
+        );
+
+
+    weather.rain =
+        Math.round(
+            Number(
+                rainProbability
+            )
+        );
+
+
+    weather.visibility =
+        Math.round(
+            (visibilityMeters/1000)*10
+        )/10;
+
+
+    weather.uv =
+        Math.round(
+            Number(
+                current.uv_index ?? 0
+            )
+        );
+
+
+    weather.weatherCode =
+        Number(
+            current.weather_code
+        );
+
+    /* Use the searched city's local API time for day/night visuals. */
+    if(current.time){
+        const hourMatch=String(current.time).match(/T(\d{2})/);
+        weather.localHour=hourMatch ? Number(hourMatch[1]) : 12;
+    }
+
+
+    weather.condition =
+        weatherCodeText(
+            weather.weatherCode
+        );
+
+
+    weather.tomorrowRain =
+        Math.round(
+            Number(
+                daily
+                .precipitation_probability_max?.[1]
+                ?? 0
+            )
+        );
+
+
+    weather.tomorrowMax =
+        Math.round(
+            Number(
+                daily
+                .temperature_2m_max?.[1]
+                ?? weather.temperature
+            )
+        );
+
+
+    weather.tomorrowMin =
+        Math.round(
+            Number(
+                daily
+                .temperature_2m_min?.[1]
+                ?? weather.temperature
+            )
+        );
+
+
+    updateDashboard();
+
+}
+
+
+/* =========================================================
+   UPDATE DASHBOARD
+========================================================= */
+
+function updateDashboard(){
+
+    document.getElementById(
+        "location"
+    ).innerText =
+        weather.location || "Unknown";
+
+
+    document.getElementById(
+        "temperature"
+    ).innerText =
+        weather.temperature;
+
+
+    document.getElementById(
+        "feels"
+    ).innerText =
+        weather.feels+"°C";
+
+
+    document.getElementById(
+        "humiditySmall"
+    ).innerText =
+        weather.humidity+"%";
+
+
+    document.getElementById(
+        "windSmall"
+    ).innerText =
+        weather.wind+" km/h";
+
+
+    document.getElementById(
+        "rainProbability"
+    ).innerText =
+        weather.rain+"%";
+
+
+    document.getElementById(
+        "visibilitySmall"
+    ).innerText =
+        weather.visibility+" km";
+
+
+    document.getElementById(
+        "uvSmall"
+    ).innerText =
+        weather.uv;
+
+
+    document.getElementById(
+        "condition"
+    ).innerText =
+        weather.condition;
+
+
+    document.getElementById(
+        "weatherIcon"
+    ).innerText =
+        weatherIcon(
+            weather.weatherCode
+        );
+
+
+    updateWeatherBackground();
+
+    updateAlert();
+
+    updateAnalysis();
+
+    generateForecast();
+
+}
+
+
+/* =========================================================
+   ALERT
+========================================================= */
+
+function updateAlert(){
+
+    const title =
+        document.getElementById(
+            "alertTitle"
+        );
+
+    const text =
+        document.getElementById(
+            "alertText"
+        );
+
+
+    if(weather.weatherCode>=95){
+
+        title.innerText =
+            "THUNDERSTORM ALERT";
+
+        text.innerText =
+            "Thunderstorm conditions are detected. "+
+            "Take appropriate precautions and "+
+            "monitor official weather warnings.";
+
+    }
+
+    else if(weather.rain>=70){
+
+        title.innerText =
+            "HIGH RAINFALL RISK";
+
+        text.innerText =
+            "Rain probability is high. Carry rain "+
+            "protection and be careful around "+
+            "waterlogged or low-lying areas.";
+
+    }
+
+    else if(weather.temperature>=38){
+
+        title.innerText =
+            "HEAT ADVISORY";
+
+        text.innerText =
+            "High temperature detected. Stay hydrated "+
+            "and avoid prolonged exposure to direct sun.";
+
+    }
+
+    else{
+
+        title.innerText =
+            "WEATHER MONITORING ACTIVE";
+
+        text.innerText =
+            "No major weather risk is detected from "+
+            "the current conditions.";
+
+    }
+
+}
+
+
+/* =========================================================
+   AI ANALYSIS
+========================================================= */
+
+function updateAnalysis(){
+
+    let rainLevel =
+        weather.rain>=70
+        ?
+        "HIGH"
+        :
+        weather.rain>=40
+        ?
+        "MODERATE"
+        :
+        "LOW";
+
+
+    document.getElementById(
+        "rainScore"
+    ).innerText =
+        rainLevel;
+
+
+    document.getElementById(
+        "rainBar"
+    ).style.width =
+        Math.max(
+            weather.rain,
+            5
+        )+"%";
+
+
+    document.getElementById(
+        "rainInsight"
+    ).innerText =
+        "Rain probability is "+
+        weather.rain+
+        "%. "+
+        (
+            weather.rain>=50
+            ?
+            "Rain protection is recommended."
+            :
+            "Rain risk is currently limited."
+        );
+
+
+    let heatLevel =
+        weather.temperature>=38
+        ?
+        "HIGH"
+        :
+        weather.temperature>=33
+        ?
+        "MODERATE"
+        :
+        "LOW";
+
+
+    document.getElementById(
+        "heatScore"
+    ).innerText =
+        heatLevel;
+
+
+    document.getElementById(
+        "heatBar"
+    ).style.width =
+        Math.min(
+            weather.temperature*2,
+            100
+        )+"%";
+
+
+    document.getElementById(
+        "heatInsight"
+    ).innerText =
+        "Current temperature is "+
+        weather.temperature+
+        "°C and feels like "+
+        weather.feels+
+        "°C.";
+
+
+    const travel =
+        weather.rain>=70 ||
+        weather.wind>=35 ||
+        weather.visibility<2
+        ?
+        "CAUTION"
+        :
+        "GOOD";
+
+
+    document.getElementById(
+        "travelScore"
+    ).innerText =
+        travel;
+
+
+    document.getElementById(
+        "travelBar"
+    ).style.width =
+        travel==="GOOD"
+        ?
+        "78%"
+        :
+        "38%";
+
+
+    document.getElementById(
+        "travelInsight"
+    ).innerText =
+        travel==="GOOD"
+        ?
+        "Current conditions appear generally suitable for normal travel."
+        :
+        "Weather conditions may affect travel. Check current warnings.";
+
+
+    document.getElementById(
+        "visibilityBar"
+    ).style.width =
+        Math.min(
+            weather.visibility*10,
+            100
+        )+"%";
+
+
+    document.getElementById(
+        "uvBar"
+    ).style.width =
+        Math.min(
+            weather.uv*10,
+            100
+        )+"%";
+
+}
+
+
+/* =========================================================
+   7 DAY FORECAST
+========================================================= */
+
+function generateForecast(){
+
+    if(!liveWeatherData){
+
+        return;
+
+    }
+
+    const grid =
+        document.getElementById(
+            "forecastGrid"
+        );
+
+    grid.innerHTML="";
+
+
+    const daily =
+        liveWeatherData.daily;
+
+
+    const times =
+        daily.time || [];
+
+
+    times.forEach(
+        (date,index)=>{
+
+            const max =
+                Math.round(
+                    daily
+                    .temperature_2m_max[index]
+                );
+
+
+            const rain =
+                Math.round(
+                    daily
+                    .precipitation_probability_max[index]
+                    || 0
+                );
+
+
+            const code =
+                daily
+                .weather_code[index];
+
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+
+            item.className =
+                "forecast-day";
+
+
+            if(index===0){
+
+                item.classList.add(
+                    "active"
+                );
+
+            }
+
+
+            let day;
+
+            if(index===0){
+
+                day="Today";
+
+            }
+            else{
+
+                day =
+                    new Date(
+                        date+"T12:00:00"
+                    ).toLocaleDateString(
+                        "en-IN",
+                        {
+                            weekday:"short"
+                        }
+                    );
+
+            }
+
+
+            item.innerHTML = `
+
+                <div class="day">
+                    ${day}
+                </div>
+
+                <div class="forecast-icon">
+                    ${weatherIcon(code)}
+                </div>
+
+                <div class="forecast-temp">
+                    ${max}°C
+                </div>
+
+                <div class="forecast-rain">
+                    💧 ${rain}%
+                </div>
+
+            `;
+
+
+            grid.appendChild(item);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   LOCATION SEARCH
+========================================================= */
+
+async function searchLocation(){
+
+    const input =
+        document.getElementById(
+            "locationInput"
+        );
+
+
+    const city =
+        input.value.trim();
+
+
+    if(!city){
+
+        input.focus();
+
+        return;
+
+    }
+
+
+    try{
+
+        input.disabled=true;
+
+
+        await updateWeatherFromAPI(
+            city
+        );
+
+
+        input.disabled=false;
+
+
+        addBot(
+
+            "📍 Live weather loaded for "+
+            "<strong>"+
+            escapeHTML(
+                weather.location
+            )+
+            "</strong>.<br><br>"+
+            "You can now ask me questions about "+
+            "rain, temperature, humidity, wind, "+
+            "travel, UV, visibility and tomorrow's forecast."
+
+        );
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        input.disabled=false;
+
+
+        if(error.message === "STATE_CITY_ONLY"){
+
+            addBot(
+
+                "📍 <strong>Weather can be accurately provided for a state or city.</strong><br><br>"+
+                "Please search for a specific state or city to get accurate weather information."
+
+            );
+
+            return;
+
+        }
+
+
+        addBot(
+
+            "⚠️ I couldn't find live weather for "+
+            "<strong>"+
+            escapeHTML(city)+
+            "</strong>.<br><br>"+
+            "Please check the city name and try again."
+
+        );
+
+    }
+
+}
+
+
+function locationKey(event){
+
+    if(event.key==="Enter"){
+
+        searchLocation();
+
+    }
+
+}
+
+
+/* =========================================================
+   NORMALIZE LANGUAGE
+========================================================= */
+
+function normalize(text){
+
+    let q =
+        text
+        .toLowerCase()
+        .trim();
+
+
+    const replacements={
+
+        wether:"weather",
+
+        waether:"weather",
+
+        wheather:"weather",
+
+        temprature:"temperature",
+
+        temparature:"temperature",
+
+        tempreature:"temperature",
+
+        humidty:"humidity",
+
+        humdity:"humidity",
+
+        tommorow:"tomorrow",
+
+        tomorow:"tomorrow",
+
+        forcast:"forecast",
+
+        forcst:"forecast",
+
+        rainning:"raining",
+
+        rainingg:"raining",
+
+        travell:"travel",
+
+        sunnie:"sunny",
+
+        windey:"windy",
+
+        umbrealla:"umbrella"
+
+    };
+
+
+    Object.keys(
+        replacements
+    ).forEach(
+        wrong=>{
+
+            q =
+                q.replace(
+                    new RegExp(
+                        "\\b"+
+                        wrong+
+                        "\\b",
+                        "g"
+                    ),
+                    replacements[wrong]
+                );
+
+        }
+    );
+
+
+    return q;
+
+}
+
+
+/* =========================================================
+   INTENT DETECTION
+========================================================= */
+
+function intents(question){
+
+    const q =
+        normalize(question);
+
+
+    const result=[];
+
+
+    const categories={
+
+        rain:[
+            "rain",
+            "rainfall",
+            "raining",
+            "rainy",
+            "precipitation",
+            "shower",
+            "drizzle",
+            "umbrella",
+            "wet"
+        ],
+
+        temperature:[
+            "temperature",
+            "temp",
+            "hot",
+            "heat",
+            "cold",
+            "cool",
+            "warm",
+            "degrees"
+        ],
+
+        sun:[
+            "sunny",
+            "sunshine",
+            "sun",
+            "clear",
+            "bright",
+            "cloudless"
+        ],
+
+        wind:[
+            "wind",
+            "windy",
+            "breeze",
+            "gust",
+            "gusty"
+        ],
+
+        humidity:[
+            "humidity",
+            "humid",
+            "moisture",
+            "moist"
+        ],
+
+        travel:[
+            "travel",
+            "trip",
+            "journey",
+            "drive",
+            "driving",
+            "road",
+            "commute",
+            "commuting",
+            "outside",
+            "outdoor"
+        ],
+
+        clothes:[
+            "wear",
+            "clothes",
+            "clothing",
+            "dress",
+            "jacket",
+            "coat"
+        ],
+
+        alert:[
+            "alert",
+            "warning",
+            "danger",
+            "risk",
+            "storm",
+            "cyclone",
+            "flood",
+            "heatwave",
+            "emergency"
+        ],
+
+        uv:[
+            "uv",
+            "ultraviolet",
+            "sunburn",
+            "sun protection"
+        ],
+
+        visibility:[
+            "visibility",
+            "fog",
+            "mist"
+        ],
+
+        air:[
+            "air quality",
+            "pollution",
+            "polluted",
+            "aqi"
+        ],
+
+        farm:[
+            "farm",
+            "farmer",
+            "farming",
+            "crop",
+            "crops",
+            "field",
+            "irrigation",
+            "harvest",
+            "agriculture"
+        ],
+
+        tomorrow:[
+            "tomorrow",
+            "next day",
+            "following day"
+        ]
+
+    };
+
+
+    Object.keys(
+        categories
+    ).forEach(
+        category=>{
+
+            categories[category].forEach(
+                word=>{
+
+                    if(
+                        q.includes(word) &&
+                        !result.includes(category)
+                    ){
+
+                        result.push(
+                            category
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    return result;
+
+}
+
+
+/* =========================================================
+   EXTRACT LOCATION FROM QUESTION
+========================================================= */
+
+function extractWeatherLocation(
+    question
+){
+
+    const q =
+        question.trim();
+
+
+    const patterns=[
+
+        /\b(?:weather|rain|rainfall|temperature|temp|humidity|wind|forecast|climate|conditions?)\s+(?:in|at|for)\s+([a-zA-Z][a-zA-Z .'-]*?)(?=\s+(?:today|tomorrow|tonight|now|currently|this|next)\b|[?!.,]*$)/i,
+
+        /\b(?:will\s+it\s+rain|is\s+it\s+raining)\s+(?:in|at|for)\s+([a-zA-Z][a-zA-Z .'-]*?)(?=\s+(?:today|tomorrow|tonight|now|currently|this|next)\b|[?!.,]*$)/i,
+
+        /\b(?:in|at|for)\s+([a-zA-Z][a-zA-Z .'-]*?)(?=\s+(?:today|tomorrow|tonight|now|currently|this|next)\b|[?!.,]*$)/i
+
+    ];
+
+
+    for(
+        const pattern of patterns
+    ){
+
+        const match =
+            q.match(pattern);
+
+
+        if(
+            match &&
+            match[1]
+        ){
+
+            return match[1]
+                .trim()
+                .replace(
+                    /\s+/g,
+                    " "
+                );
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =========================================================
+   WEATHER CHAT ANSWER
+========================================================= */
+
+function generateAnswer(
+    question
+){
+
+    const q =
+        normalize(question);
+
+
+    const detected =
+        intents(q);
+
+
+    const answers=[];
+
+
+    if(
+        /^(hello|hi|hii+|hey|heyy+|good morning|good afternoon|good evening|good night|namaste)(?:[\s,!?.]|$)/i
+        .test(q)
+    ){
+
+        if(
+            /^good morning/i.test(q)
+        ){
+
+            return "🌅 <strong>Good morning!</strong> How can I help you with today's weather?";
+
+        }
+
+        if(
+            /^good afternoon/i.test(q)
+        ){
+
+            return "☀️ <strong>Good afternoon!</strong> What weather information would you like to know?";
+
+        }
+
+        if(
+            /^good evening/i.test(q)
+        ){
+
+            return "🌆 <strong>Good evening!</strong> Would you like to check tonight's weather or tomorrow's forecast?";
+
+        }
+
+        if(
+            /^good night/i.test(q)
+        ){
+
+            return "🌙 <strong>Good night!</strong> I can still help you check tonight's or tomorrow's weather.";
+
+        }
+
+        return "👋 <strong>Hello!</strong> Welcome to WeatherGPT. Ask me about the weather for any city.";
+
+    }
+
+
+    const responseLocation =
+        weather.location;
+
+
+    if(
+        detected.includes("rain")
+    ){
+
+        let answer =
+            "🌧️ Rain probability in <strong>"+
+            escapeHTML(
+                responseLocation
+            )+
+            "</strong> is <strong>"+
+            weather.rain+
+            "%</strong>.";
+
+
+        if(weather.rain>=70){
+
+            answer +=
+                " Rain risk is high. Carry an umbrella "+
+                "and be careful around low-lying areas.";
+
+        }
+
+        else if(weather.rain>=40){
+
+            answer +=
+                " There is a moderate possibility of rain. "+
+                "Carrying an umbrella would be sensible.";
+
+        }
+
+        else{
+
+            answer +=
+                " Rain risk is currently low.";
+
+        }
+
+
+        answers.push(answer);
+
+    }
+
+
+    if(
+        detected.includes("temperature")
+    ){
+
+        answers.push(
+
+            "🌡️ The current temperature in "+
+            "<strong>"+
+            escapeHTML(
+                responseLocation
+            )+
+            "</strong> is <strong>"+
+            weather.temperature+
+            "°C</strong>, and it feels like "+
+            "<strong>"+
+            weather.feels+
+            "°C</strong>."
+
+        );
+
+    }
+
+
+    if(
+        detected.includes("sun")
+    ){
+
+        answers.push(
+
+            "☀️ Current conditions are "+
+            "<strong>"+
+            weather.condition+
+            "</strong>. The UV index is "+
+            "<strong>"+
+            weather.uv+
+            "</strong>."
+
+        );
+
+    }
+
+
+    if(
+        detected.includes("wind")
+    ){
+
+        answers.push(
+
+            "💨 Wind speed in "+
+            "<strong>"+
+            escapeHTML(
+                responseLocation
+            )+
+            "</strong> is currently "+
+            "<strong>"+
+            weather.wind+
+            " km/h</strong>."
+
+        );
+
+    }
+
+
+    if(
+        detected.includes("humidity")
+    ){
+
+        answers.push(
+
+            "💧 Humidity in "+
+            "<strong>"+
+            escapeHTML(
+                responseLocation
+            )+
+            "</strong> is "+
+            "<strong>"+
+            weather.humidity+
+            "%</strong>."
+
+        );
+
+    }
+
+
+    if(
+        detected.includes("travel")
+    ){
+
+        if(
+            weather.rain>=70 ||
+            weather.wind>=35 ||
+            weather.visibility<2
+        ){
+
+            answers.push(
+
+                "🚗 Travel conditions require "+
+                "<strong>caution</strong>. "+
+                "Weather may affect roads or visibility."
+
+            );
+
+        }
+
+        else{
+
+            answers.push(
+
+                "🚗 Current conditions appear "+
+                "<strong>generally suitable for travel</strong>. "+
+                "For long journeys, check official weather "+
+                "and road advisories."
+
+            );
+
+        }
+
+    }
+
+
+    if(
+        detected.includes("clothes")
+    ){
+
+        if(
+            weather.temperature>=35
+        ){
+
+            answers.push(
+                "👕 Light, breathable clothing would be comfortable in these conditions."
+            );
+
+        }
+
+        else if(
+            weather.temperature<=20
+        ){
+
+            answers.push(
+                "🧥 A jacket or warmer clothing may be useful."
+            );
+
+        }
+
+        else{
+
+            answers.push(
+                "👚 Comfortable everyday clothing should be suitable."
+            );
+
+        }
+
+    }
+
+
+    if(
+        detected.includes("alert")
+    ){
+
+        answers.push(
+
+            "🚨 Current risk assessment: "+
+            (
+                weather.weatherCode>=95
+                ?
+                "<strong>Thunderstorm conditions detected.</strong>"
+                :
+                weather.rain>=70
+                ?
+                "<strong>High rainfall risk.</strong>"
+                :
+                "<strong>No major weather hazard detected.</strong>"
+            )+
+            " Always follow official weather warnings for safety-critical decisions."
+
+        );
+
+    }
+
+
+    if(
+        detected.includes("uv")
+    ){
+
+        answers.push(
+
+            "☀️ The current UV index is "+
+            "<strong>"+
+            weather.uv+
+            "</strong>. Consider sun protection during prolonged outdoor exposure."
+
+        );
+
+    }
+
+
+    if(
+        detected.includes("visibility")
+    ){
+
+        answers.push(
+
+            "👁️ Current visibility is approximately "+
+            "<strong>"+
+            weather.visibility+
+            " km</strong>."
+
+        );
+
+    }
+
+
+    if(
+        detected.includes("air")
+    ){
+
+        answers.push(
+
+            "🌬️ Air-quality data is not included in this weather request. "+
+            "For a production WeatherGPT, connect Open-Meteo's Air Quality API "+
+            "or another verified AQI source."
+
+        );
+
+    }
+
+
+    if(
+        detected.includes("farm")
+    ){
+
+        answers.push(
+
+            "🌾 Agricultural insight: current temperature is "+
+            "<strong>"+
+            weather.temperature+
+            "°C</strong> and rain probability is "+
+            "<strong>"+
+            weather.rain+
+            "%</strong>. "+
+            "Consider these conditions before irrigation, spraying or harvesting."
+
+        );
+
+    }
+
+
+    if(
+        detected.includes("tomorrow")
+    ){
+
+        answers.push(
+
+            "📅 Tomorrow in "+
+            "<strong>"+
+            escapeHTML(
+                responseLocation
+            )+
+            "</strong>: rain probability is "+
+            "<strong>"+
+            weather.tomorrowRain+
+            "%</strong>, with temperatures around "+
+            "<strong>"+
+            weather.tomorrowMin+
+            "°C–"+
+            weather.tomorrowMax+
+            "°C</strong>."
+
+        );
+
+    }
+
+
+    if(
+        answers.length===0
+    ){
+
+        answers.push(
+
+            "🤖 I can help with <strong>rain, temperature, humidity, wind, sunshine, travel, clothing, UV, visibility, farming, alerts and tomorrow's forecast</strong>.<br><br>"+
+            "Try: <em>Will it rain in Kadapa today?</em>"
+
+        );
+
+    }
+
+
+    return answers.join(
+        "<br><br>"
+    );
+
+}
+
+
+/* =========================================================
+   ASK WEATHER
+========================================================= */
+
+async function askWeather(){
+
+    const input =
+        document.getElementById(
+            "question"
+        );
+
+    const question =
+        input.value.trim();
+
+    if(!question){
+
+        input.focus();
+
+        return;
+
+    }
+
+    addUser(question);
+
+    input.value = "";
+
+    showTyping();
+
+    try{
+
+        const city =
+            extractWeatherLocation(question);
+
+
+        if(city){
+
+            await updateWeatherFromAPI(city);
+
+        }
+
+
+        const response =
+            await fetch(
+                "http://localhost:3000/api/chat",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        message:question,
+
+                        weatherData:{
+
+                            location:
+                                weather.location,
+
+                            temperature:
+                                weather.temperature,
+
+                            feels:
+                                weather.feels,
+
+                            humidity:
+                                weather.humidity,
+
+                            wind:
+                                weather.wind,
+
+                            rain:
+                                weather.rain,
+
+                            visibility:
+                                weather.visibility,
+
+                            uv:
+                                weather.uv,
+
+                            condition:
+                                weather.condition,
+
+                            tomorrowRain:
+                                weather.tomorrowRain,
+
+                            tomorrowMax:
+                                weather.tomorrowMax,
+
+                            tomorrowMin:
+                                weather.tomorrowMin
+
+                        }
+
+                    })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            throw new Error(
+                data.error ||
+                "Gemini server error"
+            );
+
+        }
+
+
+        removeTyping();
+
+
+        if(data.reply){
+
+            addBot(
+                escapeHTML(data.reply)
+                    .replace(/\n/g,"<br>")
+            );
+
+        }
+
+        else{
+
+            addBot(
+                "⚠️ Gemini did not return a response."
+            );
+
+        }
+
+    }
+
+    catch(error){
+
+        console.error(
+            "Chatbot error:",
+            error
+        );
+
+        removeTyping();
+
+
+        if(error.message === "STATE_CITY_ONLY"){
+
+            addBot(
+
+                "📍 <strong>Weather can be accurately provided for a state or city.</strong><br><br>"+
+                "Please search for a specific state or city to get accurate weather information."
+
+            );
+
+            return;
+
+        }
+
+
+        addBot(
+
+            "⚠️ <strong>Chatbot connection error.</strong><br><br>"+
+
+            "Please make sure your Gemini server is running "+
+            "with:<br><br>"+
+
+            "<code>node server.js</code>"
+
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CHAT HELPERS
+========================================================= */
+
+function addUser(text){
+
+    const messages =
+        document.getElementById(
+            "messages"
+        );
+
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.className =
+        "message user-message";
+
+
+    div.innerText=text;
+
+
+    messages.appendChild(div);
+
+
+    messages.scrollTop =
+        messages.scrollHeight;
+
+}
+
+
+function addBot(text){
+
+    const messages =
+        document.getElementById(
+            "messages"
+        );
+
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.className =
+        "message bot-message";
+
+
+    div.innerHTML=text;
+
+
+    messages.appendChild(div);
+
+
+    messages.scrollTop =
+        messages.scrollHeight;
+
+}
+
+
+function showTyping(){
+
+    const messages =
+        document.getElementById(
+            "messages"
+        );
+
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.id="typing";
+
+
+    div.className =
+        "message bot-message";
+
+
+    div.innerHTML=`
+
+        <div class="typing">
+
+            <i></i>
+            <i></i>
+            <i></i>
+
+        </div>
+
+    `;
+
+
+    messages.appendChild(div);
+
+
+    messages.scrollTop =
+        messages.scrollHeight;
+
+}
+
+
+function removeTyping(){
+
+    const typing =
+        document.getElementById(
+            "typing"
+        );
+
+
+    if(typing){
+
+        typing.remove();
+
+    }
+
+}
+
+
+/* =========================================================
+   QUICK QUESTIONS
+========================================================= */
+
+function quick(text){
+
+    document.getElementById(
+        "question"
+    ).value=text;
+
+
+    askWeather();
+
+}
+
+
+function chatKey(event){
+
+    if(event.key==="Enter"){
+
+        askWeather();
+
+    }
+
+}
+
+
+/* =========================================================
+   VOICE INPUT
+========================================================= */
+
+function voiceInput(){
+
+    /*
+      MICROPHONE FEATURE
+      Records the user's voice and sends it to the existing
+      WeatherGPT server for transcription.
+    */
+
+    if(
+        window.weatherMicRecorder &&
+        window.weatherMicRecorder.state !== "inactive"
+    ){
+        window.weatherMicRecorder.stop();
+        return;
+    }
+
+    if(
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia ||
+        !window.MediaRecorder
+    ){
+
+        addBot(
+            "🎤 Microphone recording is not supported by this browser."
+        );
+
+        return;
+    }
+
+    navigator.mediaDevices
+        .getUserMedia({audio:true})
+        .then(stream=>{
+
+            const chunks=[];
+
+            let mimeType="audio/webm";
+
+            const types=[
+                "audio/webm;codecs=opus",
+                "audio/webm",
+                "audio/ogg;codecs=opus"
+            ];
+
+            for(const type of types){
+
+                if(
+                    MediaRecorder.isTypeSupported &&
+                    MediaRecorder.isTypeSupported(type)
+                ){
+
+                    mimeType=type;
+                    break;
+                }
+            }
+
+            let recorder;
+
+            try{
+
+                recorder =
+                    new MediaRecorder(
+                        stream,
+                        {mimeType:mimeType}
+                    );
+
+            }
+            catch(error){
+
+                recorder =
+                    new MediaRecorder(stream);
+
+                mimeType =
+                    recorder.mimeType ||
+                    "audio/webm";
+            }
+
+            window.weatherMicRecorder =
+                recorder;
+
+            recorder.ondataavailable =
+                event=>{
+
+                    if(
+                        event.data &&
+                        event.data.size>0
+                    ){
+
+                        chunks.push(
+                            event.data
+                        );
+
+                    }
+
+                };
+
+            recorder.onerror =
+                event=>{
+
+                    console.error(
+                        "Microphone recording error:",
+                        event.error || event
+                    );
+
+                    stream
+                        .getTracks()
+                        .forEach(
+                            track=>track.stop()
+                        );
+
+                    window.weatherMicRecorder=null;
+
+                    addBot(
+                        "🎤 There was a problem recording your voice. Please try again."
+                    );
+
+                };
+
+            recorder.onstop =
+                ()=>{
+
+                    stream
+                        .getTracks()
+                        .forEach(
+                            track=>track.stop()
+                        );
+
+                    window.weatherMicRecorder=null;
+
+                    const audioBlob =
+                        new Blob(
+                            chunks,
+                            {
+                                type:
+                                    recorder.mimeType ||
+                                    mimeType ||
+                                    "audio/webm"
+                            }
+                        );
+
+                    if(!audioBlob.size){
+
+                        addBot(
+                            "🎤 No voice was recorded. Please try again."
+                        );
+
+                        return;
+                    }
+
+                    addBot(
+                        "🎤 Processing your voice..."
+                    );
+
+                    const reader =
+                        new FileReader();
+
+                    reader.onload =
+                        async ()=>{
+
+                            try{
+
+                                const base64Audio =
+                                    String(
+                                        reader.result
+                                    ).split(",")[1] || "";
+
+                                const response =
+                                    await fetch(
+                                        "http://localhost:3000/api/transcribe",
+                                        {
+                                            method:"POST",
+
+                                            headers:{
+                                                "Content-Type":
+                                                    "application/json"
+                                            },
+
+                                            body:
+                                                JSON.stringify({
+                                                    audio:
+                                                        base64Audio,
+
+                                                    mimeType:
+                                                        audioBlob.type ||
+                                                        "audio/webm"
+                                                })
+                                        }
+                                    );
+
+                                const data =
+                                    await response.json();
+
+                                if(!response.ok){
+
+                                    throw new Error(
+                                        data.error ||
+                                        "Voice transcription failed."
+                                    );
+                                }
+
+                                const speech =
+                                    String(
+                                        data.transcript || ""
+                                    ).trim();
+
+                                if(!speech){
+
+                                    addBot(
+                                        "🎤 I couldn't understand the recording. Please try again."
+                                    );
+
+                                    return;
+                                }
+
+                                document.getElementById(
+                                    "question"
+                                ).value =
+                                    speech;
+
+                                askWeather();
+
+                            }
+                            catch(error){
+
+                                console.error(
+                                    "Voice transcription error:",
+                                    error
+                                );
+
+                                addBot(
+                                    "🎤 Voice transcription failed. "+
+                                    "Please make sure your server is running with <code>node server.js</code>."
+                                );
+
+                            }
+
+                        };
+
+                    reader.onerror =
+                        ()=>{
+
+                            addBot(
+                                "🎤 I couldn't read the recorded audio. Please try again."
+                            );
+
+                        };
+
+                    reader.readAsDataURL(
+                        audioBlob
+                    );
+
+                };
+
+            recorder.start();
+
+            addBot(
+                "🎤 Listening... Speak now, then click the microphone again to stop."
+            );
+
+        })
+        .catch(error=>{
+
+            console.error(
+                "Microphone access error:",
+                error
+            );
+
+            addBot(
+                "🎤 Microphone access was denied or unavailable. Please allow microphone access and try again."
+            );
+
+        });
+}
+
+
+/* =========================================================
+   SECURITY
+========================================================= */
+
+function escapeHTML(text){
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.textContent =
+        text;
+
+
+    return div.innerHTML;
+
+}
+
+
+
+/* =========================================================
+   PROFESSIONAL WEATHER-REACTIVE BACKGROUND
+   VISUAL ONLY — DOES NOT CHANGE WEATHER/GEMINI APIs
+========================================================= */
+
+function clearEnhancedWeatherScene(){
+    document.body.classList.remove(
+        "weather-sunny",
+        "weather-winter",
+        "weather-partly-cloudy",
+        "weather-ooty-snow"
+    );
+
+    const sunScene=document.getElementById("sunScene");
+    const winterScene=document.getElementById("winterScene");
+
+    if(sunScene) sunScene.style.display="none";
+    if(winterScene) winterScene.style.display="none";
+
+    const sunParticles=document.getElementById("sunParticles");
+    const winterSnow=document.getElementById("winterSnow");
+
+    if(sunParticles) sunParticles.innerHTML="";
+    if(winterSnow) winterSnow.innerHTML="";
+}
+
+function createSunParticles(){
+    const container=document.getElementById("sunParticles");
+    if(!container) return;
+
+    container.innerHTML="";
+
+    for(let i=0;i<30;i++){
+        const p=document.createElement("span");
+        p.className="sun-particle";
+        p.style.left=(Math.random()*100)+"%";
+        p.style.animationDuration=(7+Math.random()*10)+"s";
+        p.style.animationDelay=(-Math.random()*12)+"s";
+        p.style.opacity=(.25+Math.random()*.55);
+        p.style.transform="scale("+(0.5+Math.random()*1.5)+")";
+        container.appendChild(p);
+    }
+}
+
+function createWinterCrystals(){
+    const container=document.getElementById("winterSnow");
+    if(!container) return;
+
+    container.innerHTML="";
+
+    const symbols=["❄","❅","❆","✦","✧"];
+
+    for(let i=0;i<42;i++){
+        const crystal=document.createElement("span");
+        crystal.className="snow-crystal";
+        crystal.textContent=symbols[Math.floor(Math.random()*symbols.length)];
+        crystal.style.left=(Math.random()*100)+"%";
+        crystal.style.fontSize=(10+Math.random()*20)+"px";
+        crystal.style.animationDuration=(7+Math.random()*10)+"s";
+        crystal.style.animationDelay=(-Math.random()*15)+"s";
+        crystal.style.opacity=(.35+Math.random()*.6);
+        container.appendChild(crystal);
+    }
+}
+
+function updateProfessionalWeatherScene(){
+    clearEnhancedWeatherScene();
+
+    const code=Number(weather.weatherCode || 0);
+    const temp=Number(weather.temperature || 0);
+
+    /* OOTY: show a winter/snow atmosphere instead of the sunny scene. */
+    const locationText=String(weather.location || "").toLowerCase();
+    if(locationText.includes("ooty") || locationText.includes("udhagamandalam")){
+        document.body.classList.add("weather-ooty-snow");
+        return;
+    }
+
+    /*
+      SUNNY:
+      Clear / mainly clear / partly cloudy gets the bright
+      yellow-orange full-screen sunny atmosphere.
+    */
+    if(code===0 || code===1 || code===2){
+        document.body.classList.add("weather-sunny");
+
+        if(code===2){
+            document.body.classList.add("weather-partly-cloudy");
+
+            const sunScene=document.getElementById("sunScene");
+            if(sunScene && !sunScene.querySelector(".partly-cloud-shade")){
+                const shade=document.createElement("div");
+                shade.className="partly-cloud-shade";
+                sunScene.appendChild(shade);
+            }
+        }
+
+        const sunScene=document.getElementById("sunScene");
+        if(sunScene) sunScene.style.display="block";
+
+        createSunParticles();
+        return;
+    }
+
+    /*
+      WINTER:
+      Keep the existing cold/snow/ice animation untouched.
+      This adds a richer winter environment around it.
+    */
+    if(
+        code>=71 && code<=86 ||
+        temp<=8
+    ){
+        document.body.classList.add("weather-winter");
+
+        const winterScene=document.getElementById("winterScene");
+        if(winterScene) winterScene.style.display="block";
+
+        createWinterCrystals();
+    }
+}
+
+/*
+   Hook into the existing dashboard update.
+   The original updateDashboard() remains responsible for
+   weather data and UI. This only adds the visual response.
+*/
+const originalUpdateDashboard=updateDashboard;
+
+updateDashboard=function(){
+    originalUpdateDashboard();
+    updateProfessionalWeatherScene();
+};
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+createStars();
+createRain();
+createWind();
+createClouds();
+createSnow();
+createIce();
+scheduleLightning();
+
+
+/*
+   Default location.
+
+   This is fetched from the API.
+   No Math.random() weather is used.
+*/
+
+/* =========================================================
+   INITIAL LOCATION — CURRENT DEVICE LOCATION
+   Uses the SAME Open-Meteo weather API.
+   No weather/Gemini API has been changed.
+========================================================= */
+
+async function loadCurrentLocationWeather(){
+
+    if(!navigator.geolocation){
+
+        addBot(
+            "📍 Your browser does not support location access. "+
+            "Please use the city search box."
+        );
+
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+
+        async position=>{
+
+            try{
+
+                const latitude =
+                    position.coords.latitude;
+
+                const longitude =
+                    position.coords.longitude;
+
+                /*
+                 * Keep the existing weather API function.
+                 * We only obtain the coordinates from the
+                 * browser's current location.
+                 */
+                const data =
+                    await fetchLiveWeather(
+                        latitude,
+                        longitude
+                    );
+
+                liveWeatherData=data;
+
+                const current =
+                    data.current || {};
+
+                const hourly =
+                    data.hourly || {};
+
+                const daily =
+                    data.daily || {};
+
+                const hourIndex =
+                    findCurrentHourIndex(
+                        hourly.time,
+                        current.time
+                    );
+
+                const rainProbability =
+                    Array.isArray(
+                        hourly.precipitation_probability
+                    )
+                    ?
+                    (
+                        hourly.precipitation_probability[
+                            hourIndex
+                        ] ?? 0
+                    )
+                    :
+                    0;
+
+                const visibilityMeters =
+                    Array.isArray(
+                        hourly.visibility
+                    )
+                    ?
+                    (
+                        hourly.visibility[
+                            hourIndex
+                        ] ?? 10000
+                    )
+                    :
+                    10000;
+
+                /*
+                 * Use reverse geocoding only for displaying
+                 * the current city name. Weather still comes
+                 * directly from the existing Open-Meteo API.
+                 */
+                let displayLocation =
+                    "Current Location";
+
+                try{
+
+                    const geoResponse =
+                        await fetch(
+                            "https://geocoding-api.open-meteo.com/v1/reverse"+
+                            "?latitude="+latitude+
+                            "&longitude="+longitude+
+                            "&count=1"+
+                            "&language=en"+
+                            "&format=json"
+                        );
+
+                    if(geoResponse.ok){
+
+                        const geoData =
+                            await geoResponse.json();
+
+                        if(
+                            geoData.results &&
+                            geoData.results.length
+                        ){
+
+                            const place =
+                                geoData.results[0];
+
+                            displayLocation =
+                                place.name +
+                                (
+                                    place.country
+                                    ?
+                                    ", "+place.country
+                                    :
+                                    ""
+                                );
+
+                        }
+
+                    }
+
+                }
+                catch(reverseError){
+
+                    console.warn(
+                        "Could not determine city name:",
+                        reverseError
+                    );
+
+                }
+
+                weather.location =
+                    displayLocation;
+
+                weather.temperature =
+                    Math.round(
+                        Number(
+                            current.temperature_2m
+                        )
+                    );
+
+                weather.feels =
+                    Math.round(
+                        Number(
+                            current.apparent_temperature
+                        )
+                    );
+
+                weather.humidity =
+                    Math.round(
+                        Number(
+                            current.relative_humidity_2m
+                        )
+                    );
+
+                weather.wind =
+                    Math.round(
+                        Number(
+                            current.wind_speed_10m
+                        )
+                    );
+
+                weather.rain =
+                    Math.round(
+                        Number(
+                            rainProbability
+                        )
+                    );
+
+                weather.visibility =
+                    Math.round(
+                        (visibilityMeters/1000)*10
+                    )/10;
+
+                weather.uv =
+                    Math.round(
+                        Number(
+                            current.uv_index ?? 0
+                        )
+                    );
+
+                weather.weatherCode =
+                    Number(
+                        current.weather_code
+                    );
+
+                weather.condition =
+                    weatherCodeText(
+                        weather.weatherCode
+                    );
+
+                weather.tomorrowRain =
+                    Math.round(
+                        Number(
+                            daily
+                            .precipitation_probability_max?.[1]
+                            ?? 0
+                        )
+                    );
+
+                weather.tomorrowMax =
+                    Math.round(
+                        Number(
+                            daily
+                            .temperature_2m_max?.[1]
+                            ?? weather.temperature
+                        )
+                    );
+
+                weather.tomorrowMin =
+                    Math.round(
+                        Number(
+                            daily
+                            .temperature_2m_min?.[1]
+                            ?? weather.temperature
+                        )
+                    );
+
+                updateDashboard();
+
+                addBot(
+                    "📍 Weather loaded for your <strong>current location</strong>."
+                );
+
+            }
+            catch(error){
+
+                console.error(
+                    "Initial current-location weather error:",
+                    error
+                );
+
+                addBot(
+                    "⚠️ Weather service could not be reached. "+
+                    "Use the search box to try another city."
+                );
+
+            }
+
+        },
+
+        error=>{
+
+            console.warn(
+                "Location permission/error:",
+                error
+            );
+
+            addBot(
+                "📍 I couldn't access your current location. "+
+                "Please allow location access in your browser, "+
+                "or search for a city manually."
+            );
+
+        },
+
+        {
+            enableHighAccuracy:true,
+            timeout:10000,
+            maximumAge:300000
+        }
+
+    );
+
+}
+
+loadCurrentLocationWeather();
+
+
+
+/* =========================================================
+   WEATHERGPT AUTHENTICATION
+   Firebase configuration must be filled in before use.
+   Enabled providers: Google and Email/Password.
+========================================================= */
+
+const WEATHERGPT_FIREBASE_CONFIG = {
+    apiKey: "AIzaSyB0zpIfEPII2cnnDPZ-KOdw6fGWpUrJ8qc",
+    authDomain: "weathergpt-d8e45.firebaseapp.com",
+    projectId: "weathergpt-d8e45",
+    storageBucket: "weathergpt-d8e45.firebasestorage.app",
+    messagingSenderId: "630608124860",
+    appId: "1:630608124860:web:3cae8a14b45f0c00b8a9b9",
+    measurementId: "G-NZBB7JEF0K"
+};
+
+const loginPage = document.getElementById("loginPage");
+const logoutBtn = document.getElementById("logoutBtn");
+const loginStatus = document.getElementById("loginStatus");
+const emailTab = document.getElementById("emailTab");
+const emailLoginForm = document.getElementById("emailLoginForm");
+const googleLoginBtn = document.getElementById("googleLoginBtn");
+const passwordToggle = document.getElementById("passwordToggle");
+const loginPassword = document.getElementById("loginPassword");
+
+let weatherGPTAuthReady = false;
+
+function weatherGPTSetLoginStatus(message, isError = false){
+    loginStatus.textContent = message || "";
+    loginStatus.style.color = isError ? "#ff9b9b" : "#7dffd8";
+}
+
+function weatherGPTShowApp(){
+    loginPage.style.display = "none";
+    logoutBtn.style.display = "block";
+}
+
+function weatherGPTShowLogin(){
+    loginPage.style.display = "flex";
+    logoutBtn.style.display = "none";
+}
+
+function weatherGPTFirebaseConfigured(){
+    return !WEATHERGPT_FIREBASE_CONFIG.apiKey.startsWith("YOUR_") &&
+           !WEATHERGPT_FIREBASE_CONFIG.projectId.startsWith("YOUR_");
+}
+
+async function weatherGPTInitAuth(){
+
+    if(!weatherGPTFirebaseConfigured()){
+        weatherGPTSetLoginStatus(
+            "Add your Firebase configuration to enable login.",
+            true
+        );
+        weatherGPTShowLogin();
+        return;
+    }
+
+    try{
+        if(!firebase.apps.length){
+            firebase.initializeApp(WEATHERGPT_FIREBASE_CONFIG);
+        }
+
+        // Keep the user's login available across page refreshes.
+        await firebase.auth().setPersistence(
+            firebase.auth.Auth.Persistence.LOCAL
+        );
+
+        weatherGPTAuthReady = true;
+
+        // IMPORTANT: Process the Google redirect first.
+        // This explicitly opens the WeatherGPT dashboard when Google
+        // sends the user back to localhost:3000.
+        let redirectUser = null;
+        try{
+            const redirectResult = await firebase.auth().getRedirectResult();
+            redirectUser = redirectResult && redirectResult.user ? redirectResult.user : null;
+
+            if(redirectUser){
+                console.log("Google redirect login successful:", redirectUser.email);
+                weatherGPTShowApp();
+                weatherGPTSetLoginStatus("");
+            }
+        }
+        catch(error){
+            console.error("Google redirect result error:",error);
+            weatherGPTSetLoginStatus(
+                error.message || "Google sign-in failed.",
+                true
+            );
+        }
+
+        // Keep the UI synchronized with Firebase authentication state.
+        firebase.auth().onAuthStateChanged(user=>{
+            if(user || redirectUser){
+                weatherGPTShowApp();
+                weatherGPTSetLoginStatus("");
+            }
+            else{
+                weatherGPTShowLogin();
+            }
+        });
+
+    }
+    catch(error){
+        console.error("WeatherGPT authentication initialization error:",error);
+        weatherGPTSetLoginStatus(
+            "Authentication could not be initialized.",
+            true
+        );
+    }
+}
+
+emailTab.addEventListener("click",()=>{
+    weatherGPTSetLoginStatus("");
+});
+
+passwordToggle.addEventListener("click",()=>{
+    const showing = loginPassword.type === "text";
+    loginPassword.type = showing ? "password" : "text";
+    passwordToggle.textContent = showing ? "Show" : "Hide";
+    passwordToggle.setAttribute(
+        "aria-label",
+        showing ? "Show password" : "Hide password"
+    );
+});
+
+googleLoginBtn.addEventListener("click",async()=>{
+
+    if(!weatherGPTAuthReady){
+        weatherGPTSetLoginStatus(
+            "Firebase login is not configured yet.",
+            true
+        );
+        return;
+    }
+
+    try{
+        weatherGPTSetLoginStatus("Opening Google sign-in...");
+
+        const provider =
+            new firebase.auth.GoogleAuthProvider();
+
+        // Use redirect instead of popup. This avoids auth/popup-blocked
+        // errors in Chrome and other browsers.
+        provider.setCustomParameters({
+            prompt: "select_account"
+        });
+
+        await firebase.auth().signInWithPopup(provider);
+
+    }
+    catch(error){
+        console.error("Google login error:",error);
+        weatherGPTSetLoginStatus(
+            error.message || "Google sign-in failed.",
+            true
+        );
+    }
+});
+
+emailLoginForm.addEventListener("submit",async event=>{
+
+    event.preventDefault();
+
+    if(!weatherGPTAuthReady){
+        weatherGPTSetLoginStatus(
+            "Firebase login is not configured yet.",
+            true
+        );
+        return;
+    }
+
+    const email =
+        document.getElementById("loginEmail").value.trim();
+
+    const password =
+        document.getElementById("loginPassword").value;
+
+    try{
+        weatherGPTSetLoginStatus("Signing you in...");
+
+        await firebase.auth().signInWithEmailAndPassword(
+            email,
+            password
+        );
+
+    }
+    catch(error){
+        console.error("Email login error:",error);
+        weatherGPTSetLoginStatus(
+            error.message || "Email sign-in failed.",
+            true
+        );
+    }
+});
+
+logoutBtn.addEventListener("click",async()=>{
+
+    if(!weatherGPTAuthReady){
+        weatherGPTShowLogin();
+        return;
+    }
+
+    try{
+        await firebase.auth().signOut();
+    }
+    catch(error){
+        console.error("Logout error:",error);
+    }
+});
+
+weatherGPTInitAuth();
+
+</script>
+
+</body>
+</html>
